@@ -1,0 +1,1231 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+	<meta name="apple-mobile-web-app-capable" content="yes">
+	<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+	<title>Dungrow Grimoire L06</title>
+	<style>
+		:root {
+			--bg: #1a1a1a;
+			--card-bg: #2d2d2d;
+			--text: #e0e0e0;
+			--accent: #d4af37;
+			--danger: #ff4d4d;
+			--success: #4caf50;
+			--font: -apple-system, system-ui, sans-serif;
+		}
+
+		body {
+			font-family: var(--font);
+			background-color: var(--bg);
+			color: var(--text);
+			margin: 0; padding: 0;
+			-webkit-tap-highlight-color: transparent;
+			overflow-x: hidden;
+		}
+
+		header {
+			background: #111;
+			padding: 15px;
+			text-align: center;
+			border-bottom: 2px solid var(--accent);
+			position: sticky; top: 0; z-index: 100;
+		}
+
+		h1 { margin: 0; font-size: 1.1rem; color: var(--accent); text-transform: uppercase; letter-spacing: 1px; }
+		
+		.container { padding: 15px; max-width: 600px; margin: auto; padding-bottom: 60px; }
+
+		/* MOTEUR DE RECHERCHE */
+		.search-wrapper {
+			position: relative;
+			margin-bottom: 10px;
+			background: #f1f1f1;
+			border-radius: 25px;
+			display: flex;
+			align-items: center;
+			padding: 8px 15px;
+		}
+		.search-icon { color: #8e8e93; font-size: 18px; margin-right: 10px; }
+		#search-input { flex: 1; border: none; background: transparent; height: 30px; font-size: 1rem; outline: none; color: #333; }
+		.clear-search { color: #8e8e93; font-size: 20px; cursor: pointer; padding: 0 5px; visibility: hidden; }
+
+		/* BOUTON RESET GLOBAL */
+		.global-reset-container { margin-bottom: 20px; text-align: right; }
+		.btn-global-reset {
+			background: transparent;
+			color: var(--danger);
+			border: 1px solid var(--danger);
+			padding: 6px 12px;
+			border-radius: 20px;
+			font-size: 0.7rem;
+			font-weight: bold;
+			text-transform: uppercase;
+			cursor: pointer;
+		}
+
+		/* ECRANS */
+		.screen { display: none; }
+		.screen.active { display: block; animation: fadeIn 0.2s ease-out; }
+		@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+		/* BOUTONS */
+		.btn {
+			background: var(--card-bg);
+			border: 1px solid #444;
+			color: var(--text);
+			padding: 16px;
+			margin-bottom: 8px;
+			border-radius: 12px;
+			display: block;
+			text-decoration: none;
+			font-size: 1rem;
+			text-align: left;
+			width: 100%;
+			box-sizing: border-box;
+		}
+		.btn:active { opacity: 0.7; }
+
+		.back-link { color: var(--accent); display: inline-block; margin-bottom: 15px; text-decoration: none; font-weight: bold; padding: 10px 0; }
+
+		/* TEXTES ET META */
+		.meta { font-size: 0.85rem; color: #aaa; margin-bottom: 15px; background: #222; padding: 12px; border-radius: 8px; line-height: 1.5; border: 1px solid #333; }
+		.outcome-tag { color: var(--accent); font-weight: bold; margin-bottom: 5px; display: block; font-size: 1rem; }
+		
+		.scenic { font-style: italic; border-left: 4px solid var(--accent); padding-left: 15px; margin: 20px 0; color: #bbb; line-height: 1.6; }
+
+		.dialogue-text {
+			font-size: 1.15rem;
+			line-height: 1.6;
+			background: #000;
+			padding: 20px;
+			border-radius: 12px;
+			border: 1px solid #444;
+			white-space: pre-wrap;
+			color: #fff;
+		}
+
+		.category-title { color: var(--accent); font-size: 0.75rem; text-transform: uppercase; margin: 25px 0 10px 5px; letter-spacing: 2px; font-weight: 800; }
+
+		.action-bar { display: flex; gap: 12px; margin-top: 30px; margin-bottom: 25px; }
+		.btn-validate { background: var(--success); color: white; flex: 2; text-align: center; font-weight: bold; border: none; }
+		.btn-cancel { background: var(--danger); color: white; flex: 1; text-align: center; border: none; }
+
+		/* LOGS SECTION */
+		.log-section { border-top: 1px solid #444; padding-top: 15px; font-size: 0.85rem; color: #888; }
+		.log-title { color: var(--accent); font-weight: bold; margin-bottom: 8px; display: block; text-transform: uppercase; font-size: 0.7rem; }
+		.log-entry { 
+			display: flex; justify-content: space-between; align-items: center; 
+			margin-bottom: 6px; border-bottom: 1px solid #222; padding-bottom: 6px; 
+		}
+		.btn-delete-log {
+			background: var(--danger); color: white; border: none; padding: 4px 8px;
+			border-radius: 4px; font-size: 0.7rem; font-weight: bold; cursor: pointer;
+		}
+
+		/* POP-IN (MODAL) */
+		#modal-overlay {
+			position: fixed; top:0; left:0; width:100%; height:100%;
+			background: rgba(0,0,0,0.85); z-index: 1000;
+			display: none; align-items: center; justify-content: center;
+			backdrop-filter: blur(3px);
+		}
+		.modal-box {
+			background: #222; width: 85%; max-width: 350px;
+			padding: 25px; border-radius: 15px; border: 1px solid var(--accent);
+			text-align: center;
+		}
+		.modal-msg { margin-bottom: 20px; font-size: 1rem; line-height: 1.4; color: white; }
+		.modal-btns { display: flex; gap: 10px; }
+		.m-btn { flex: 1; padding: 12px; border-radius: 8px; border: none; font-weight: bold; }
+		.m-cancel { background: #444; color: white; }
+		.m-confirm { background: var(--accent); color: black; }
+		.m-danger { background: var(--danger); color: white; }
+
+		.counter { float: right; color: var(--accent); font-weight: bold; font-family: monospace; }
+		.hidden { display: none; }
+	</style>
+</head>
+<body>
+
+<header><h1>Dungrow : Grimoire L06</h1></header>
+
+<div class="container">
+	<div id="screen-1" class="screen active">
+		<div class="search-wrapper">
+			<span class="search-icon">🔍</span>
+			<input type="text" id="search-input" placeholder="Rechercher un sort..." oninput="filterSpells()">
+			<span id="clear-btn" class="clear-search" onclick="clearSearch()">✕</span>
+		</div>
+		
+		<div class="global-reset-container">
+			<button class="btn-global-reset" onclick="confirmGlobalReset()">Réinitialiser le Grimoire</button>
+		</div>
+
+		<div id="spell-list"></div>
+	</div>
+
+	<div id="screen-2" class="screen">
+		<a href="#" class="back-link" onclick="showScreen(1)">← Retour</a>
+		<h2 id="s2-name"></h2>
+		<div id="s2-meta" class="meta"></div>
+		<div id="outcome-list"></div>
+	</div>
+
+	<div id="screen-3" class="screen">
+		<a href="#" id="back-to-s2" class="back-link">← Retour</a>
+		<h2 id="s3-name"></h2>
+		<div id="s3-meta" class="meta"></div>
+		<div id="dialogue-types"></div>
+	</div>
+
+	<div id="screen-4" class="screen">
+		<a href="#" class="back-link" onclick="showScreen(3)">← Retour</a>
+		<h2 id="s4-name"></h2>
+		<div id="s4-meta" class="meta"></div>
+		<div id="s4-scenic" class="scenic"></div>
+		<div id="s4-text" class="dialogue-text"></div>
+		<div class="action-bar">
+			<button class="btn btn-cancel" onclick="showScreen(3)">Annuler</button>
+			<button class="btn btn-validate" onclick="confirmValidation()">Valider</button>
+		</div>
+		<div class="log-section">
+			<span class="log-title">Derniers usages :</span>
+			<div id="s4-logs"></div>
+		</div>
+	</div>
+</div>
+
+<div id="modal-overlay">
+	<div class="modal-box">
+		<div id="modal-msg" class="modal-msg"></div>
+		<div class="modal-btns">
+			<button class="m-btn m-cancel" onclick="closeModal()">ANNULER</button>
+			<button id="modal-confirm-btn" class="m-btn">VALIDER</button>
+		</div>
+	</div>
+</div>
+
+<script>
+	// METS ICI TON JSON COMPLET
+	const fullData = {		"grimoire": [
+			{
+				"category": "Dons",
+				"spells": [
+					{
+						"id": "battle_medicine",
+						"name": "Médecine Militaire",
+						"name_en": "Battle Medicine",
+						"rank": null,
+						"type": "Don de compétence",
+						"mechanic": "Jet de Médecine requis",
+						"outcomes": [
+							{
+								"result": "Échec Critique (J’empire La Situation)",
+								"scenic_attitude": "Mes mains se précipitent vers la blessure avec une urgence maladroite. Je farfouille dans ma sacoche, en tire des bandages, des onguents... et applique tout ça dans le mauvais ordre, au mauvais endroit, avec la mauvaise technique. Mes yeux s’écarquillent quand je réalise que le sang coule PLUS qu’avant. Ma barbe se hérisse de panique. Je transpire, mes mains tremblent légèrement. L’air se charge de tension — celle du soigneur qui vient de tout foutre en l’air. Me voyant faire, tous comprennent que je ferais mieux de laisser tomber la médecine et de me contenter de chanter.",
+								"dialogues": {
+									"Syndicale": "OUPS ! Non, non, non ! Attends, ne meurs pas ! C’est une erreur de procédure ! Je vais remplir un formulaire de réclamation auprès du service de santé ! NE MEURS PAS AVANT QUE J’AIE FINI LA PAPERASSE !",
+									"Mythologique": "Par Grundinnar ! C’est le mauvais cataplasme ! Non, attends, c’était le BON cataplasme mais le mauvais endroit ! TORAG, SI TU M’ENTENDS, J’AI BESOIN D’UN MIRACLE LÀ !",
+									"Grivoise": "MERDE MERDE MERDE ! C’était le bleu ou le rouge ?! PUTAIN je sais pas ! Tiens bon ! Respire ! Ou arrête de respirer ?! Non, RESPIRE ! QUELQU’UN D’AUTRE SAIT FAIRE ÇA ?!",
+									"Jaworski": "Non... non, les dieux me punissent... Mes mains, censées guérir, ne font qu’aggraver... Pardonne-moi. Je suis désolé. Je suis tellement désolé. Quelqu’un... aidez-le... je ne peux pas...",
+									"Post-Perfidia": "PAS ENCORE ! PAS TOI AUSSI ! Je refuse ! JE REFUSE ! Comme avec elle, mes mains inutiles, toujours trop tard, jamais assez... NON ! BATS-TOI ! NE ME LAISSE PAS SEUL !"
+								}
+							},
+							{
+								"result": "Échec (Les Soins Sont Insuffisants)",
+								"scenic_attitude": "Je presse le bandage sur la plaie, applique l’onguent avec soin, mais le résultat est décevant. Le saignement ralentit à peine, la douleur persiste. Je fronce les sourcils, ma mâchoire se crispe. Mes mains continuent machinalement, mais mon regard trahit la frustration. Je secoue la tête, mécontent du résultat. Ma voix prend un ton défensif. L’air reste tendu — les soins ne suffisent pas. Me voyant faire, tous comprennent que je fais ce que je peux, mais que ce n’est manifestement pas assez.",
+								"dialogues": {
+									"Syndicale": "Tu résistes à mon aide ! Détends-toi ! Comment veux-tu que je travaille si tu crispes tous tes chakras comme un barbare ?! Ce n’est PAS de ma faute si ton corps refuse de coopérer !",
+									"Mythologique": "Grundinnar me donne la volonté, mais ton corps refuse la guérison ! As-tu offensé les dieux ? Y a-t-il une malédiction sur toi ? Explique-moi pourquoi ça ne FONCTIONNE PAS !",
+									"Grivoise": "Putain, t’es fait en quoi, en fer rouillé ?! Les plaies normales se referment quand je les touche ! La tienne, elle a décidé de faire grève ou quoi ?! Tiens bon, je vais trouver autre chose...",
+									"Jaworski": "La chair résiste. Le sang refuse de se tarir. C’est... frustrant. Je fais de mon mieux, mais mon mieux n’est visiblement pas suffisant aujourd’hui. Pardonne mon incompétence.",
+									"Post-Perfidia": "Non, non, non... pas comme avec elle... Ça devrait marcher ! Pourquoi ça ne marche pas ?! Accroche-toi, je vais trouver, je vais... je ne peux pas te perdre aussi..."
+								}
+							},
+							{
+								"result": "Succès (Soins Efficaces)",
+								"scenic_attitude": "Mes mains se déplacent avec assurance et méthode. Pression ici pour stopper le saignement, bandage là pour stabiliser, onguent précisément dosé. Mes gestes sont économes, professionnels, presque mécaniques dans leur efficacité. Mon visage reste concentré mais calme. Un hochement de tête satisfait quand je constate que les soins prennent effet. Ma voix est posée, rassurante sans être mielleuse. L’air se détend légèrement — la crise est évitée. Me voyant faire, tous comprennent que je sais ce que je fais, que la formation syndicale en secourisme n’était pas une perte de temps.",
+								"dialogues": {
+									"Syndicale": "Je t’interdis de t’effondrer. C’est laid et vulgaire. Accroche-toi à ma voix, respire par le nez, et relève-toi avec classe. Les blessés qui gémissent, c’est mauvais pour le moral des troupes.",
+									"Mythologique": "Grundinnar guide mes mains. Torag forge ta résilience. Les ancêtres veillent. Tu ne tomberas pas aujourd’hui, camarade. Pas sous ma garde. Lève-toi et retourne au combat.",
+									"Grivoise": "Voilà, c’est fait. T’es rafistolé comme neuf. Enfin, presque. Disons... fonctionnel. Évite de te faire découper en deux la prochaine fois, ça m’arrange. Allez, debout.",
+									"Jaworski": "La douleur reflue. Le sang cesse de fuir. Ton corps reprend ses droits sur la mort. C’est fini. Respire. Tu vas vivre. C’est tout ce qui compte pour l’instant.",
+									"Post-Perfidia": "Tu restes en vie. Tu m’entends ? TU RESTES EN VIE. Je ne laisserai personne d’autre partir. Pas sous ma surveillance. Jamais plus. Lève-toi et bats-toi."
+								}
+							},
+							{
+								"result": "Succès Critique (Soins Miraculeux)",
+								"scenic_attitude": "Mes mains se posent sur la blessure et quelque chose de magique se produit — au-delà de la simple technique. La chair semble répondre à mon toucher avec une gratitude presque vivante. Mes yeux se ferment brièvement, concentrés, puis se rouvrent brillants. Je retire mes mains lentement, presque révérencieusement, contemplant mon œuvre avec un mélange de surprise et de satisfaction. Un sourire incrédule effleure mes lèvres. L’air vibre d’une énergie curative presque palpable. Me voyant faire, tous comprennent que je viens de faire quelque chose de remarquable — peut-être même de divin.",
+								"dialogues": {
+									"Syndicale": "Par... par Grundinnar... Je suis un faiseur de miracles. Regarde-toi ! Tu es comme neuf ! Non, mieux que neuf ! Je devrais facturer ça au triple ! Tu te sens mieux ? Évidemment que tu te sens mieux. JE SUIS EXCEPTIONNEL.",
+									"Mythologique": "LES DIEUX ONT PARLÉ À TRAVERS MES MAINS ! Grundinnar m’a prêté sa puissance ! Torag a béni ce moment ! Tu n’es pas seulement soigné — tu es SANCTIFIÉ ! Lève-toi, frère, et témoigne du prodige !",
+									"Grivoise": "PUTAIN ! T’as vu ça ?! J’ai fait ça ! MOI ! Tes tripes rentraient et maintenant tu pourrais courir un marathon ! Je suis un putain de génie ! Embrasse-moi, non, embrasse mes MAINS !",
+									"Jaworski": "Je viens de toucher quelque chose de plus grand que moi. La frontière entre vie et mort s’est effacée sous mes doigts. Tu étais presque parti... et je t’ai ramené. C’est... humiliant et magnifique à la fois.",
+									"Post-Perfidia": "Pour elle... Pour elle, j’ai réussi. Mes mains ont enfin fait ce qu’elles auraient dû faire ce jour-là. Tu vis. TU VIS. Et peut-être... peut-être qu’une partie de ma dette est payée. Lève-toi. Vis pour nous deux."
+								}
+							}
+						]
+					},
+					{
+						"id": "bon_mot",
+						"name": "Bon Mot",
+						"name_en": "Bon Mot",
+						"rank": null,
+						"type": "Don social",
+						"mechanic": "Jet d’Intimidation/Diplomatie requis",
+						"outcomes": [
+							{
+								"result": "Échec Critique (L’insulte Se Retourne Contre Moi)",
+								"scenic_attitude": "Mon doigt se lève avec autorité, prêt à lancer une réplique cinglante... mais les mots s’emmêlent dans ma bouche. Je bafouille, je cherche le terme savant qui m’échappe, mon visage rougit de frustration. Mes mains gesticulent frénétiquement, comme si elles pouvaient compenser l’échec verbal. Mes yeux trahissent la panique du tribun qui perd son public. Je tousse, je m’étrangle presque. L’air reste neutre, aucune cinglante vérité ne résonne. Me voyant faire, tous comprennent que je viens de m’humilier moi-même bien plus efficacement que je n’aurais jamais pu humilier ma cible.",
+								"dialogues": {
+									"Syndicale": "Votre incompétence est... euh... incommensurablement... incommen... RAAAH ! Vous êtes trop BÊTE pour comprendre l’insulte que j’essaie de vous faire ! C’est frustrant !",
+									"Mythologique": "Par les... les machins de Torag ! Et les trucs de Grundinnar ! Vous êtes un... un... MERDE, le mot existe, je le SAIS ! Laissez-moi deux secondes !",
+									"Grivoise": "Ta gueule elle ressemble à... non, attends... Ton intelligence est comme... PUTAIN, c’était drôle dans ma tête ! Oublie ! Oublie tout !",
+									"Jaworski": "La trame de ton... non, la rature dans le... ARGH ! Les mots me trahissent ! C’est ta médiocrité qui contamine mon éloquence ! Voilà, c’est de TA faute !",
+									"Post-Perfidia": "Tu es... tu es comme... Non. Les mots ne viennent plus. Depuis qu’elle est partie, même les insultes ont perdu leur saveur. Frappe-moi si tu veux, j’ai mérité."
+								}
+							},
+							{
+								"result": "Échec (L’insulte Rate Sa Cible)",
+								"scenic_attitude": "Mon doigt pointe vers l’ennemi avec conviction, ma bouche s’ouvre pour lancer une vérité cinglante... mais l’autre hausse les épaules, indifférent. Je cligne des yeux, incrédule. Mes épaules s’affaissent légèrement, ma main retombe. J’époussette ma manche dans un geste qui se veut désinvolte mais qui trahit ma vexation. Mon regard fuit brièvement. L’air porte mes mots mais ils tombent à plat, sans écho. Me voyant faire, tous comprennent que j’ai gaspillé ma salive — et que c’est profondément irritant.",
+								"dialogues": {
+									"Syndicale": "Bien sûr que vous ne comprenez pas. C’est comme donner de la confiture aux cochons. Oubliez ça, vous ne méritez même pas mon mépris. C’est du gaspillage intellectuel.",
+									"Mythologique": "Grundinnar dit qu’on ne peut pas polir un caillou pour en faire un diamant. J’aurais dû l’écouter. Vous êtes... imperméable à la finesse. C’est presque un don, d’être si obtus.",
+									"Grivoise": "Laisse tomber, t’as pas le niveau pour comprendre de toute façon. C’est comme expliquer la poésie à une mule. La mule est plus jolie, en plus.",
+									"Jaworski": "Les perles aux pourceaux, comme toujours. Votre esprit est trop émoussé pour saisir la lame de mes mots. Passons. J’ai mieux à faire que d’éduquer les imbéciles.",
+									"Post-Perfidia": "Même mes insultes manquent leur cible maintenant. Tout me glisse des mains. Perfidia aurait trouvé les mots justes, elle. Moi je... laisse tomber."
+								}
+							},
+							{
+								"result": "Succès (L’insulte Touche)",
+								"scenic_attitude": "Mon regard se fait clinique, presque chirurgical. Je ne crie pas — j’ANALYSE, à voix haute, disséquant les failles de mon adversaire avec la précision d’un anatomiste. Mon doigt ne pointe pas avec rage mais avec froideur, comme un professeur qui désigne un exemple d’erreur. Ma voix reste posée, presque douce — ce qui rend l’insulte encore plus cinglante. L’air se tend légèrement, mes mots trouvent leur marque comme des fléchettes bien placées. Me voyant faire, tous comprennent que je viens de planter une vérité dérangeante dans l’esprit de ma cible — et qu’elle va y ruminer.",
+								"dialogues": {
+									"Syndicale": "Observons les faits : vous êtes une erreur de casting. Un dysfonctionnement. Une rature dans la trame du destin. Disparaissez, ou faites au moins l’effort d’être tragique plutôt que simplement pathétique.",
+									"Mythologique": "Grundinnar pèse les âmes. La vôtre est plus légère qu’une plume d’oiseau mort. Pas de substance, pas de valeur, juste du vide qui prend de la place. C’est... décevant, vraiment.",
+									"Grivoise": "T’es le genre de type que même sa mère oublie au bout de cinq minutes. T’as la présence d’un pet dans une tempête et le charisme d’une chaussette mouillée. Et encore, je suis gentil.",
+									"Jaworski": "Vous êtes l’incarnation de la médiocrité ambitieuse. Ni assez bon pour réussir, ni assez mauvais pour être mémorable. Juste... terne. Infiniment, désespérément terne.",
+									"Post-Perfidia": "Elle valait mille fois ce que tu vaudras jamais. Et maintenant qu’elle est partie, le monde a encore moins de place pour les déchets dans ton genre. Efface-toi."
+								}
+							},
+							{
+								"result": "Succès Critique (L’insulte Détruit L’ego)",
+								"scenic_attitude": "Je ne bouge presque pas. Juste un sourire — minuscule, cruel, chargé d’une satisfaction absolue. Mes yeux se plissent légèrement, brillants d’une intelligence acérée comme une lame fraîchement forgée. Ma voix baisse d’un ton, devient presque un murmure — mais un murmure qui porte, qui résonne, qui s’insinue dans les failles de l’âme adverse. Chaque mot est pesé, choisi, mortel. L’air lui-même semble retenir son souffle. Me voyant faire, tous comprennent que je viens de détruire quelque chose de fondamental chez ma cible — son estime, sa confiance, peut-être même sa raison de se battre.",
+								"dialogues": {
+									"Syndicale": "Je viens de déconstruire la totalité de votre raison d’être en trois mots. Sentez-vous ce vide ? Ce vertige ? C’est tout ce qu’il vous reste. Vous n’êtes plus rien. Vous ne l’avez jamais été. Merci d’avoir participé.",
+									"Mythologique": "Grundinnar lui-même vient de me souffler votre véritable nom : “Insignifiance”. Les dieux vous ont regardé et ont détourné les yeux, écœurés. Même le néant ne voudrait pas de vous. C’est beau, dans sa cruauté.",
+									"Grivoise": "Putain... t’es tellement pathétique que j’ai presque pitié. Presque. Ta vie entière est une blague dont personne ne rit. Et le pire ? Tu le sais. Tu l’as toujours su. Et ça te ronge.",
+									"Jaworski": "Je t’ai observé. J’ai compris. Tu n’es qu’une ombre qui prétend à la substance, un écho qui se croit voix. Je viens de te montrer le miroir. Regarde-toi. VRAIMENT. Et désespère.",
+									"Post-Perfidia": "Elle est morte. Toi, tu respires encore. Et c’est la preuve que l’univers est une farce cruelle. Tu ne MÉRITES pas de vivre alors qu’elle est partie. Et maintenant, tu le sais. Porte ce poids."
+								}
+							}
+						]
+					}
+				]
+			},
+			{
+				"category": "Les tours de magie",
+				"spells": [
+					{
+						"id": "dirge_of_doom",
+						"name": "Chant Funeste",
+						"name_en": "Dirge Of Doom",
+						"rank": null,
+						"type": "Don de classe",
+						"mechanic": "Fonctionne systématiquement",
+						"outcomes": [
+							{
+								"result": "Succès (Automatique)",
+								"scenic_attitude": "Je me redresse, et mon index se pointe lentement vers le sol, comme un juge qui prononce une sentence capitale. Mon ombre semble s’allonger démesurément derrière moi, projetée par une lumière qui n’existe pas. Ma voix devient grave, monocorde, presque psalmodiante — ce n’est plus un chant, c’est une litanie funèbre. Mes yeux se plissent, mon regard devient celui du fossoyeur qui mesure déjà les dimensions de la tombe. L’atmosphère s’alourdit perceptiblement, comme si la mort elle-même prenait place sur le champ de bataille. Me voyant faire, tous comprennent que je ne combats plus — je célèbre des funérailles anticipées.",
+								"dialogues": {
+									"Syndicale": "Procédure de liquidation enclenchée. Vos droits sont suspendus, vos recours annulés. Le registre des vivants est désormais fermé à votre nom. Veuillez procéder à votre dissolution dans les formes.",
+									"Mythologique": "Par les salles silencieuses de nos ancêtres morts... Grundinnar prépare déjà ton jugement. Les forges de Torag refroidissent pour toi. Marche vers ton repos éternel, car il n’y a plus de chemin de retour.",
+									"Grivoise": "J’espère que t’as fait ton testament, mon gars, parce que dans quelques minutes, tes héritiers vont se partager tes fringues trouées. Dis au revoir au monde, il était trop beau pour toi de toute façon.",
+									"Jaworski": "Tu es déjà une ombre. Tu ne le sais pas encore, mais chaque pas que tu fais résonne déjà dans les halls des morts. Je suis le glas qui sonne ton passage. Écoute bien — c’est le dernier son qui parlera de toi.",
+									"Post-Perfidia": "Je chante pour elle. Je chante pour tous ceux qui sont tombés par votre faute. Ce chant est leur requiem... et ton oraison funèbre. Prépare-toi à les rejoindre."
+								}
+							}
+						]
+					},
+					{
+						"id": "courageous_anthem_rank_0",
+						"name": "Hymne de Courage",
+						"name_en": "Courageous Anthem",
+						"rank": 0,
+						"type": "Sort focalisé",
+						"mechanic": "Fonctionne systématiquement",
+						"outcomes": [
+							{
+								"result": "Succès (Automatique)",
+								"scenic_attitude": "Je plante mes pieds écartés dans la terre, ancrage nain inébranlable. Mon torse se gonfle comme un soufflet de forge, ma main gauche se pose sur mon cœur — geste de Grundinnar, dieu de la Loyauté — tandis que ma droite se projette vers vous, mes alliés, paume ouverte, doigts écartés comme pour vous transmettre une flamme invisible. Ma barbe frémit, mes yeux se plissent avec une intensité paternelle. C’est le délégué syndical qui défend ses camarades devant les barons. Ma voix part du ventre, grave et chaude comme le métal en fusion, puis s’élève en crescendo martial. L’air autour de moi vibre légèrement, scintillement doré à peine perceptible. Me voyant faire, tous comprennent que le Dieu Grundinnar reconnaît la fraternité sincère et en toute circonstance épaule et appuie ses fidèles.",
+								"dialogues": {
+									"Syndicale": "Debout, camarades ! Vous n’êtes pas de la chair à canon, vous êtes l’acier qui brise les chaînes ! Frappez avec la certitude du droit, car votre cause est juste et votre bras, inaliénable !",
+									"Mythologique": "Par les enclumes de Torag et les serments de Grundinnar ! Que chaque coup porte le poids de nos ancêtres ! Vous n’êtes pas seuls — dix mille générations frappent avec vous !",
+									"Grivoise": "Allez mes beautés ! Montrez-leur que vous avez plus de couilles qu’un taureau en rut et plus de rage qu’une naine à qui on a volé sa bière ! Tapez fort, tapez vrai, et qu’ils aillent pleurer chez leur mère !",
+									"Jaworski": "Vous êtes la foudre qui déchire la nuit ! Vous êtes l’inexorable marée qui engloutit les tyrans ! Que votre lame soit la plume qui écrit la fin de leur chapitre misérable !",
+									"Post-Perfidia": "Pour ceux qui sont tombés et qu’on n’a pas su protéger ! Que chaque coup soit une dette remboursée en sang ! Frappez ! FRAPPEZ ! Qu’ils comprennent le prix de leur arrogance !"
+								}
+							}
+						]
+					},
+					{
+						"id": "rallying_anthem_rank_0",
+						"name": "Hymne de Ralliement",
+						"name_en": "Rallying Anthem",
+						"rank": 0,
+						"type": "Sort focalisé",
+						"mechanic": "Fonctionne systématiquement",
+						"outcomes": [
+							{
+								"result": "Succès (Automatique)",
+								"scenic_attitude": "Je me redresse de toute ma hauteur — mes quatre pieds de nain valent bien six pieds d’homme quand la conviction m’habite. Mon poing droit se ferme et monte vers le ciel dans un geste de victoire anticipée, tandis que ma main gauche balaye l’espace devant moi comme si j’écartais physiquement le découragement. Ma voix ne hurle pas, elle PORTE. C’est le ton du contremaître qui refuse d’abandonner le chantier, du capitaine qui voit la tempête mais garde le cap. Mes yeux scrutent chacun de vous, mes alliés, comme pour y rallumer une flamme qui vacille. Un souffle chaud émane de moi, presque imperceptible mais réconfortant comme le foyer d’une forge familiale. Me voyant faire, tous comprennent que reculer n’est plus une option — avancer est la seule dignité qui nous reste.",
+								"dialogues": {
+									"Syndicale": "On ne lâche RIEN ! Pas un pouce de terrain, pas une once de dignité ! Reformez les rangs, serrez les dents, et montrez-leur que nous ne sommes pas négociables !",
+									"Mythologique": "Par la barbe de mes pères ! Un nain ne recule que pour mieux frapper l’enclume ! Regroupez-vous autour de moi — nous sommes la montagne, et la montagne ne plie pas !",
+									"Grivoise": "Hé ! On ne va pas se laisser emmerder par ces connards ! Ramenez vos fesses ici, on va leur montrer comment on danse dans les tavernes de Brechemont — à coups de tronches cassées !",
+									"Jaworski": "Le désespoir est un luxe que nous ne pouvons nous permettre ! Regroupons-nous comme les mots d’une sentence, serrons-nous comme les pierres d’une voûte — ensemble, nous sommes indestructibles !",
+									"Post-Perfidia": "Pour elle, on tient ! Pour tous ceux qu’on a perdus, on ne cède PAS UN POUCE ! Ralliez-vous à moi — nous sommes la digue contre laquelle leurs vagues se briseront !"
+								}
+							}
+						]
+					},
+					{
+						"id": "shield_rank_0",
+						"name": "Bouclier",
+						"name_en": "Shield",
+						"rank": 0,
+						"type": "Tour de magie occulte",
+						"mechanic": "Fonctionne systématiquement",
+						"outcomes": [
+							{
+								"result": "Succès (Automatique)",
+								"scenic_attitude": "Ma paume gauche se lève devant mon visage, doigts écartés, dans un geste instinctif de protection. Mon autre main reste libre, prête à contre-attaquer. Mon regard se durcit, mes mâchoires se serrent — c’est le nain obstiné qui refuse de plier. Un scintillement argenté apparaît devant ma paume, comme un éclat de métal poli qui capte la lumière. Ma posture est défensive mais pas craintive — c’est celle du gréviste qui bloque l’entrée de l’usine, inflexible. L’air se densifie légèrement devant moi, presque visible dans sa résistance. Me voyant faire, tous comprennent qu’il existe des lignes qu’on ne franchit pas, des frontières que même la violence ne peut violer.",
+								"dialogues": {
+									"Syndicale": "Violation manifeste de mon périmètre de sécurité ! Accès refusé ! La zone est réservée au personnel autorisé, et vous n’avez clairement pas les accréditations nécessaires !",
+									"Mythologique": "Par Grundinnar ! Vous croyez franchir la garde d’un fils de la montagne ? Je suis le roc, je suis l’enclume — frappez si vous l’osez, vous ne récolterez que des mains brisées !",
+									"Grivoise": "Bas les pattes, connard ! On ne touche pas la marchandise sans payer d’abord ! Et vos poches sont aussi vides que votre crâne !",
+									"Jaworski": "Votre violence s’arrête ici. Je suis la parenthèse qui ferme votre phrase, la limite qui circonscrit votre médiocrité. Passez votre chemin ou apprenez la frustration.",
+									"Post-Perfidia": "Plus jamais. PLUS JAMAIS vous ne toucherez les miens. Cette ligne est tracée dans le sang de ceux que j’ai perdus — franchissez-la et rejoignez-les dans la mort."
+								}
+							}
+						]
+					},
+					{
+						"id": "bullhorn_rank_0",
+						"name": "Porte-Voix",
+						"name_en": "Bullhorn",
+						"rank": 0,
+						"type": "Tour de magie occulte",
+						"mechanic": "Fonctionne systématiquement",
+						"outcomes": [
+							{
+								"result": "Succès (Automatique)",
+								"scenic_attitude": "Mes deux mains se portent en coupe autour de ma bouche, geste ancestral de celui qui harangue la foule. Mon menton se lève, ma poitrine se bombe, mes pieds s’écartent pour ancrer ma voix dans la terre elle-même. Ma gorge vibre d’une énergie magique, douce et chaude comme du miel épicé. Je ne crie pas — je PROCLAME. C’est la voix du tribun sur l’agora, du crieur public qui annonce les décrets, du barde qui captive la taverne entière. L’air devant ma bouche ondule légèrement, portant mes mots bien au-delà de leur portée naturelle. Me voyant faire, tous comprennent que certaines vérités méritent d’être entendues par tous, que le silence est parfois une complicité honteuse.",
+								"dialogues": {
+									"Syndicale": "Que tous m’entendent, du premier rang aux dernières tribunes ! La vérité n’a pas besoin de murmurer — elle clame, elle résonne, elle s’impose ! Écoutez et retenez bien ces mots !",
+									"Mythologique": "Que ma voix porte jusqu’aux halls de pierre de mes ancêtres ! Grundinnar lui-même se fait l’écho de mes paroles — que nul ne prétende n’avoir pas entendu l’appel !",
+									"Grivoise": "Tendez bien vos oreilles, bande de sourds ! Même le type au fond qui cuve sa bière doit savoir ce que j’ai à dire ! Fermez vos gueules et ouvrez vos esgourdes !",
+									"Jaworski": "Que ces mots traversent les murs et les silences ! Qu’ils résonnent dans les consciences comme le premier battement d’un cœur qui s’éveille ! Écoutez, car je ne répéterai pas !",
+									"Post-Perfidia": "Que tous sachent ce qui s’est passé ici ! Que personne n’oublie ! Les morts méritent qu’on raconte leur histoire — et je la hurlerai jusqu’à ce que les pierres elles-mêmes s’en souviennent !"
+								}
+							}
+						]
+					},
+					{
+						"id": "needle_darts_rank_0",
+						"name": "Fléchettes Aiguilles",
+						"name_en": "Needle Darts",
+						"rank": 0,
+						"type": "Tour de magie occulte",
+						"mechanic": "Jet d’attaque requis",
+						"outcomes": [
+							{
+								"result": "Échec Critique",
+								"scenic_attitude": "Je lance ma main en avant avec autorité, mais la fléchette magique dévie honteusement et tombe à mes pieds dans un scintillement pathétique. Mes yeux s’écarquillent brièvement — c’est l’humiliation du professionnel pris en défaut. Je regarde mes bottes, puis ma main, comme si l’une d’elles m’avait trahi. Mon autre main se pose sur ma hanche dans un geste d’exaspération contenue. Ma mâchoire se crispe. Un silence gêné s’installe. Me voyant faire, tous comprennent que même les meilleurs connaissent des ratés — mais que cela ne rend pas l’échec moins cuisant.",
+								"dialogues": {
+									"Syndicale": "Anomalie gravitationnelle locale ! Je dépose une réclamation immédiate auprès du département des forces cosmiques ! Cette défaillance sera consignée au rapport !",
+									"Mythologique": "Par Torag ! Le métal lui-même refuse de frapper l’indigne ! C’était... c’était un test de votre vigilance. Félicitations, vous avez réussi.",
+									"Grivoise": "C’était un coup d’essai ! Un tir de reconnaissance ! Je vérifiais juste... la densité de l’air. Ouais, c’est ça. Totalement intentionnel.",
+									"Jaworski": "Même la précision a ses moments d’errance. C’est... poétique, d’une certaine manière. La beauté de l’imperfection. Ne regardez pas ça.",
+									"Post-Perfidia": "PUTAIN ! Même la magie me trahit maintenant ?! Très bien, très bien... le prochain part dans ta gueule, c’est une PROMESSE !"
+								}
+							},
+							{
+								"result": "Échec",
+								"scenic_attitude": "La fléchette part avec conviction mais manque sa cible de plusieurs pouces. Je plisse les yeux, suivant sa trajectoire ratée, puis mon regard se tourne vers le ciel ou le vent comme pour accuser un élément extérieur. Mes épaules se haussent légèrement dans un geste défensif. Ma main libre fait un mouvement vague, comme pour balayer l’échec. Mon expression oscille entre l’agacement et la fausse désinvolture. L’air siffle autour du projectile raté. Me voyant faire, tous comprennent que j’ai des excuses toutes prêtes — et qu’aucune ne convaincra vraiment personne.",
+								"dialogues": {
+									"Syndicale": "Courant d'air imprévu ! Qui a ouvert une fenêtre ? La trajectoire était PARFAITE, c'est le monde qui est mal foutu ! Je veux des compensations !",
+									"Mythologique": "Les dieux détournent parfois nos coups pour des raisons qui nous échappent... Ou alors cette cible n’en valait simplement pas la peine. Oui, c’est ça.",
+									"Grivoise": "C’était un tir de sommation ! Un avertissement ! La prochaine fois, je vise pour de vrai et tu vas regretter d’être né, crois-moi !",
+									"Jaworski": "Vous ne méritez même pas que je gaspille ma précision sur vous. Contentez-vous de cette démonstration de ma retenue. Soyez reconnaissants.",
+									"Post-Perfidia": "MERDE ! Concentre-toi, Dungrow ! Elle comptait sur nous et tu rates même un tir basique ?! Ressaisis-toi, bon sang !"
+								}
+							},
+							{
+								"result": "Succès",
+								"scenic_attitude": "Mon bras se tend avec assurance, index et majeur pointés vers la cible comme si ma main elle-même était l’arme. La fléchette argentée jaillit dans un sifflement aigu et trouve sa marque avec une précision professionnelle. Mon regard suit le projectile sans émotion excessive — c’est le travail bien fait, rien de plus. Un hochement de tête minimal, presque imperceptible. Ma posture reste stable, équilibrée. L’air crépite légèrement au passage du sort. Me voyant faire, tous comprennent que la compétence n’a pas besoin de fanfare — elle parle d’elle-même.",
+								"dialogues": {
+									"Syndicale": "Démonstration de précision réglementaire. Observez la trajectoire - géométrie pure, économie de mouvement. C’est ainsi qu’on travaille quand on respecte son métier.",
+									"Mythologique": "Comme le forgeron frappe l’enclume au bon endroit. Pas de fioritures, pas d’excès — juste le geste juste au moment juste. Grundinnar approuve.",
+									"Grivoise": "En plein dans le mille, comme d’habitude. Tu vois ça ? C’est de la précision de nain, ça. Pas besoin de faire le beau, le résultat parle de lui-même.",
+									"Jaworski": "Une démonstration de finesse. Le sort trouve son chemin comme l’eau trouve la fissure. C’était écrit, c’est accompli. Passons à autre chose.",
+									"Post-Perfidia": "Un de moins. Elle aurait voulu de l’efficacité, pas du spectacle. On continue — il en reste encore trop debout."
+								}
+							},
+							{
+								"result": "Succès Critique",
+								"scenic_attitude": "Le projectile part avant même que mon bras ne soit complètement tendu — c’est l’instinct qui précède le geste. Je tourne déjà le dos à la cible, soufflant négligemment sur mes doigts comme pour refroidir un pistolet fumant imaginaire. Mon regard ne daigne même pas vérifier l’impact — je SAIS. Mes épaules roulent légèrement, détendues, presque ennuyées. Un sourire en coin, minuscule mais satisfait, étire mes lèvres. L’air explose là où la fléchette frappe, avec une violence disproportionnée. Me voyant faire, tous comprennent que certains gestes atteignent la perfection — et que je sais exactement quand c’est le cas.",
+								"dialogues": {
+									"Syndicale": "Suivant. Quelqu’un d’autre veut tester ma patience ? Non ? Parfait. On peut enfin passer à des tâches qui nécessitent réellement mon attention.",
+									"Mythologique": "Les doigts de mes ancêtres ont guidé ce tir. Dix générations de précision naine concentrées en un seul geste. Vous avez été honorés d’en être témoins.",
+									"Grivoise": "Je m’ennuie tellement que c’est facile. Sérieusement, appelez-moi quand il y aura du défi. Là, c’est comme frapper un tonneau immobile. Pathétique.",
+									"Jaworski": "La perfection n’est pas un objectif, c’est une évidence quand on cesse de douter. Ce tir était déjà accompli avant que ma main ne bouge — je n’ai fait que manifester l’inévitable.",
+									"Post-Perfidia": "Pour toi, petite peste. J'espère que là-haut, tu as vu ça. C'était beau, non ? J'en garde encore quelques-uns comme ça en réserve. Regarde bien."
+								}
+							}
+						]
+					},
+					{
+						"id": "read_the_air_rank_0",
+						"name": "Lire l’Ambiance",
+						"name_en": "Read The Air",
+						"rank": 0,
+						"type": "Tour de magie occulte",
+						"mechanic": "Jet de compétence (Perception/Diplomatie) requis",
+						"outcomes": [
+							{
+								"result": "Échec Critique",
+								"scenic_attitude": "Je ferme les yeux, penchant légèrement la tête sur le côté comme pour mieux capter les subtilités de l’atmosphère... et je capte absolument tout de travers. Mes yeux se rouvrent avec une confiance totalement déplacée, un sourire satisfait aux lèvres. Je hoche la tête comme si j’avais percé tous les secrets, alors que ma lecture est catastrophiquement erronée. Ma main fait un geste d’évidence, comme pour dire « c’est clair comme de l’eau de roche ». L’air reste parfaitement neutre autour de moi — aucune révélation ne vient. Me voyant faire, tous comprennent que je suis sur le point de dire une énormité en y croyant dur comme fer.",
+								"dialogues": {
+									"Syndicale": "Absolument aucune tension ici ! Ces gens nous adorent, c’est évident ! Je propose qu’on leur demande une contribution financière volontaire — ils seront ravis de participer !",
+									"Mythologique": "Grundinnar me souffle que ces individus sont nos alliés les plus sûrs ! Je sens une fraternité profonde, une loyauté indéfectible ! Embrassons-les !",
+									"Grivoise": "Cette ambiance est chaude comme une taverne un soir de paye ! Tout le monde est détendu, heureux ! On pourrait leur vendre n’importe quoi ! Ou leur emprunter de l’or !",
+									"Jaworski": "Le silence qui règne ici est celui de l’admiration révérencieuse. Ils sont tétanisés par notre présence. C’est... touchant, vraiment. Continuons à les éblouir.",
+									"Post-Perfidia": "Aucun danger ici. Personne ne nous veut du mal. C’est... c’est reposant, pour une fois. On peut baisser la garde. Vraiment. Je le sens."
+								}
+							},
+							{
+								"result": "Échec",
+								"scenic_attitude": "Mes yeux se plissent, scrutant l’assemblée avec concentration. Je capte des bribes, des fragments, mais le tableau reste flou et incertain. Mon front se plisse, ma barbe se tortille nerveusement entre mes doigts. Je fais quelques gestes vagues de la main, comme pour saisir des fils invisibles qui m’échappent. Mon expression trahit l’incertitude, même si j’essaie de la masquer sous un vernis professionnel. L’air frémit autour de moi, porteur de messages que je ne parviens pas à déchiffrer clairement. Me voyant faire, tous comprennent que je pêche en eaux troubles — et que je n’aime pas ça.",
+								"dialogues": {
+									"Syndicale": "L’ambiance est... complexe. Multifactorielle. Il y a des variables que je ne peux pas encore quantifier. Donnez-moi plus de temps pour l’analyse complète.",
+									"Mythologique": "Les dieux parlent en énigmes aujourd’hui. Soit ils nous testent, soit je n’ai pas sacrifié assez de bière à Cayden Cailean. Restons vigilants.",
+									"Grivoise": "Je capte que dalle, pour être franc. C’est soit très bon signe, soit très mauvais. Ou entre les deux. Merde, je suis aussi utile qu’un elfe en forge.",
+									"Jaworski": "L’atmosphère est trouble comme une eau qui refuse de révéler sa profondeur. Je vois des ombres, des suggestions, mais pas de certitudes. Procédons avec précaution.",
+									"Post-Perfidia": "Je ne sais pas. Je ne sais plus lire les gens. Depuis qu’elle... Merde, faites-moi confiance sur autre chose. Là, je suis aveugle."
+								}
+							},
+							{
+								"result": "Succès",
+								"scenic_attitude": "Mes yeux se ferment à demi, ma respiration se fait plus lente, plus profonde. Je deviens une antenne vivante, captant les micro-expressions, les tensions musculaires, les silences éloquents. Ma tête s’incline légèrement, comme pour mieux écouter une musique inaudible. Mes doigts tambourinent doucement contre ma cuisse — je décode, j’analyse, je comprends. Un hochement de tête affirmatif, mes yeux se rouvrent avec une clarté nouvelle. L’air me murmure ses secrets, presque tangibles dans leur évidence. Me voyant faire, tous comprennent que j’ai percé le voile des apparences et que je sais maintenant ce qui se joue vraiment.",
+								"dialogues": {
+									"Syndicale": "Intéressant. Très intéressant. La tension est palpable ici — conflit d’intérêts, loyautés divisées, peur sous-jacente. Je connais cette configuration. Procédons stratégiquement.",
+									"Mythologique": "Grundinnar m’éclaire. Ces âmes sont tourmentées mais pas hostiles. Elles cherchent une issue, un guide. Peut-être pouvons-nous être ce phare dans leur obscurité.",
+									"Grivoise": "Je vois clair dans leur jeu. Ils ont peur, ils mentent, mais pas par méchanceté — par survie. On connaît ça. Adaptons notre approche, on n’est pas des monstres.",
+									"Jaworski": "L’ambiance se dévoile comme un texte qu’on apprend à lire. Méfiance ici, espoir là, résignation dans ce coin. Nous savons maintenant sur quel terrain nous marchons.",
+									"Post-Perfidia": "Je sens le danger. Pas immédiat, mais latent. Comme avant qu’elle... Non. Cette fois, je ne serai pas pris au dépourvu. On reste sur nos gardes."
+								}
+							},
+							{
+								"result": "Succès Critique",
+								"scenic_attitude": "Le monde ralentit autour de moi. Chaque battement de cil, chaque respiration retenue, chaque regard fuyant devient un livre ouvert. Mes yeux brillent d’une acuité presque surnaturelle, comme si je voyais à travers les âmes elles-mêmes. Je ne bouge pas, pétrifié dans une concentration absolue. Puis un sourire — pas de satisfaction, mais de compréhension totale — étire lentement mes lèvres. Mes doigts se joignent devant moi en une pyramide réfléchie. L’air vibre d’informations qui s’organisent dans mon esprit comme les pièces d’un puzzle complexe. Me voyant faire, tous comprennent que je ne lis pas seulement l’ambiance — je lis les âmes, les intentions, les secrets qu’on croyait bien gardés.",
+								"dialogues": {
+									"Syndicale": "Je vois tout. Les alliances cachées, les rancœurs rentrées, les peurs secrètes. Vous croyez masquer vos jeux, mais chaque visage est un contrat ouvert que je lis comme mon propre grimoire.",
+									"Mythologique": "Grundinnar me prête ses yeux. Je vois vos cœurs comme il les voit — nus, vulnérables, magnifiquement transparents. Vous ne pouvez rien me cacher, et étrangement... je vous comprends.",
+									"Grivoise": "Putain, c’est comme si vous portiez tous des pancartes sur le front ! Lui il ment, elle a peur, celui-là prépare un coup fourré, et vous deux... vous couchez ensemble en cachette. Trop facile.",
+									"Jaworski": "Je ne lis plus l’ambiance, je la VIS. Chaque tension est une corde de luth que je peux pincer, chaque silence est une note que je peux interpréter. Vous êtes une symphonie, et j’en connais maintenant chaque mouvement.",
+									"Post-Perfidia": "Je vois qui ment. Je vois qui cache quelque chose. Je vois qui nous veut du mal. Et par tous les dieux, si quelqu’un ici a la moindre information sur ce qui lui est arrivé... je SAURAI."
+								}
+							}
+						]
+					},
+					{
+						"id": "haunting_hymn_rank_0",
+						"name": "Hymne Obsédant",
+						"name_en": "Haunting Hymn",
+						"rank": 0,
+						"type": "Tour de magie occulte",
+						"mechanic": "Jet de Vigueur de la cible",
+						"outcomes": [
+							{
+								"result": "Échec Critique (La Cible Réussit Son Jet Avec Éclat)",
+								"scenic_attitude": "Je lance mon chant lugubre avec conviction, ma voix descendant dans les graves sépulcraux... mais la cible éclate de rire ou hausse les épaules avec mépris. Mes yeux s’écarquillent d’incrédulité — mon art, rejeté si brutalement ! Ma voix s’étrangle légèrement, ma main retombe mollement le long de mon flanc. Mon visage rougit — c’est l’humiliation de l’artiste sifflé par son public. Je tousse pour masquer ma gêne. L’air reste parfaitement neutre, aucun frisson d’effroi ne parcourt l’atmosphère. Me voyant faire, tous comprennent que mon hymne a l’effet terrifiant d’une berceuse pour enfant.",
+								"dialogues": {
+									"Syndicale": "C’est une violation caractérisée du protocole d’effroi ! Vous DEVRIEZ trembler ! C’est dans le règlement ! J’exige une nouvelle audition dans des conditions acoustiques appropriées !",
+									"Mythologique": "Par Torag... Mon chant ancestral, transmis depuis dix générations, et vous... vous RIEZ ?! C’est un sacrilège ! Grundinnar, détourne ton regard de cette infamie !",
+									"Grivoise": "Quoi ?! Même ma belle-mère aurait eu peur de ce chant ! Vous êtes sourd OU complètement con ?! Attendez, ne répondez pas, je sais déjà...",
+									"Jaworski": "L’horreur est subjective, à ce qu’il pararait. Ou alors vous êtes déjà si perdu dans les ténèbres qu’un peu plus d’obscurité ne fait aucune différence. Triste, vraiment.",
+									"Post-Perfidia": "TU TE FOUS DE MA GUEULE ?! J’invoque les morts et toi tu... Très bien. TRÈS BIEN. On verra si tu rigoles encore quand Raichu te coupera en deux !"
+								}
+							},
+							{
+								"result": "Échec (La Cible Résiste)",
+								"scenic_attitude": "Ma voix tremble dans les graves, cherchant les notes qui glacent le sang, mais la cible résiste, secouant la tête comme pour chasser une mouche agaçante. Je fronce les sourcils, insistant légèrement, mais rien n’y fait. Ma main se tend vers la cible, doigts recourbés comme des griffes, mais le geste manque de conviction. Mon expression oscille entre frustration et recherche d’excuses plausibles. L’air frissonne faiblement, porteur d’un malaise léger mais insuffisant. Me voyant faire, tous comprennent que mon hymne est plus irritant qu’effrayant.",
+								"dialogues": {
+									"Syndicale": "Résistance passive ! C’est de l’obstruction caractérisée ! Vous refusez délibérément de coopérer avec un processus d’intimidation tout à fait légitime ! C’est noté au dossier !",
+									"Mythologique": "Les anciens disent que certaines âmes sont trop endurcies pour connaître la peur. Apparemment, vous en faites partie. Ou alors vous êtes juste trop stupide pour comprendre le danger.",
+									"Grivoise": "Tu résistes à mon chant ? Bravo, champion. Tu veux une médaille ? Ça change rien au fait que tu vas quand même déguster, juste... sans la bande-son appropriée.",
+									"Jaworski": "L’effroi refuse de prendre racine dans votre esprit. Soit vous êtes d’un courage remarquable, soit vous êtes déjà habité par des terreurs bien pires que les miennes. Je penche pour la seconde option.",
+									"Post-Perfidia": "Tu ne veux pas avoir peur ? Très bien. Reste confiant. Reste serein. Elle aussi était sereine avant que... Non. Oublie. Défends-toi juste mieux qu’elle."
+								}
+							},
+							{
+								"result": "Succès (La Cible Rate Son Jet)",
+								"scenic_attitude": "Ma voix descend dans des profondeurs caverneuses, chaque syllabe résonnant comme un glas. Mon regard se vide, devient distant, presque mort — comme si je regardais à travers la cible vers quelque chose de bien plus terrifiant. Ma main se lève lentement, index pointé vers le sol dans un geste de condamnation funèbre. Ma posture se voûte légèrement, comme si je portais le poids de tous les morts que j’ai connus. L’air se refroidit perceptiblement, des ombres semblent s’allonger autour de moi sans raison naturelle. Me voyant faire, tous comprennent que j’ai touché quelque chose de primordial dans l’âme de ma cible — la peur de la fin.",
+								"dialogues": {
+									"Syndicale": "Votre dossier a été transféré au département des âmes perdues. Le traitement de votre cas est irréversible. Vous pouvez contester, mais l’issue est déjà scellée. Bonne journée.",
+									"Mythologique": "Grundinnar tient le registre des vivants. J’ai consulté les pages. Ton nom est déjà biffé à l’encre noire. Tu ne le sais pas encore, mais tu marches déjà parmi les ombres.",
+									"Grivoise": "Je vois ta mort, mon ami. Elle est là, juste derrière ton épaule. Elle sourit. Elle est patiente. Et elle a tout son temps... contrairement à toi.",
+									"Jaworski": "Écoute. Écoute bien. C’est le son de ta propre obsolescence. Le murmure du néant qui t’attend. Je suis simplement le messager qui te rappelle que tu n’es que passage, que fumée, que cendre.",
+									"Post-Perfidia": "Tu vois ce que je vois ? Les morts qui nous regardent ? Elle est là, parmi eux. Et elle veut que tu la rejoignes. Bientôt. Très bientôt."
+								}
+							},
+							{
+								"result": "Succès Critique (La Cible Échoue Dramatiquement)",
+								"scenic_attitude": "Ma voix ne chante plus — elle DÉCRÈTE. Chaque mot tombe comme une pierre tombale, lourd d’une autorité surnaturelle. Mes yeux s’illuminent d’une lueur spectrale, argentée et froide comme la lune morte. Je ne bouge presque pas, juste mes lèvres qui forment les syllabes de la damnation. Mon autre main reste immobile le long de mon corps, mais mes doigts tremblent légèrement - non de peur, mais de puissance à peine contenue. L’air devient glacial, oppressant, comme si la mort elle-même se penchait par-dessus mon épaule pour écouter mon chant. Des ombres impossibles dansent aux coins de la vision. Me voyant faire, tous comprennent que je ne menace pas — je PROPHÉTISE.",
+								"dialogues": {
+									"Syndicale": "MOTION DE CENSURE COSMIQUE DÉPOSÉE CONTRE TON EXISTENCE ! Le comité des âmes a voté à l’UNANIMITÉ ! Ton contrat avec la vie est RÉSILIÉ ! Procédure d’expulsion IMMÉDIATE !",
+									"Mythologique": "À GENOUX DEVANT L’INÉVITABLE ! Grundinnar détourne son regard ! Torag ferme ses forges ! MÊME LES DIEUX REFUSENT DE TE COMPTER PARMI LES LEURS ! Tu es seul face au vide qui t’avale !",
+									"Grivoise": "TU SENS ÇA ?! C’est ta propre terreur qui te ronge les tripes ! Tu vas chier ton courage, vomir ta bravoure, et pleurer comme un gosse avant que je n’en aie fini avec toi !",
+									"Jaworski": "Je suis la voix de ton crépuscule. Je suis l’hymne de ta dissolution. Chaque battement de ton cœur est un compte à rebours que j’orchestre. Tu n’es plus qu’une note discordante qui s’éteint dans ma symphonie.",
+									"Post-Perfidia": "TU VEUX SAVOIR CE QUE C’EST QUE LA PEUR ?! Elle a eu peur ! ELLE A EU PEUR AVANT DE MOURIR ! Alors maintenant, TOI AUSSI TU VAS CONNAÎTRE CETTE TERREUR ! Et tu vas la supplier de t’emporter !"
+								}
+							}
+						]
+					}
+				]
+			},
+			{
+				"category": "Rang 1er",
+				"spells": [
+					{
+						"id": "soothe_rank_1",
+						"name": "Apaiser",
+						"name_en": "Soothe",
+						"rank": 1,
+						"type": "Sort occulte spontané",
+						"mechanic": "Fonctionne systématiquement",
+						"outcomes": [
+							{
+								"result": "Succès (Automatique)",
+								"scenic_attitude": "Ma main se tend vers vous, mon allié blessé, paume ouverte dans un geste d'offrande. Mes doigts bougent légèrement, comme si je tissais des fils invisibles de réconfort. Mon regard se fait doux, presque paternel - une rareté chez moi. Ma voix baisse d'un ton, devient murmure chaud et enveloppant, comme une couverture qu'on pose sur des épaules fatiguées. Ma posture s'incline légèrement vers vous, rapprochement physique qui trahit ma sollicitude. Une lumière douce, presque lactée, émane de ma paume et glisse vers la blessure. Me voyant faire, tous comprennent que derrière le tribun acerbe se cache quelqu'un qui tient profondément à ses camarades.",
+								"dialogues": {
+									"Syndicale": "Rapport de blessure reçu et traité. Les dommages sont temporaires, la dignité reste intacte. Respire, camarade. Le syndicat ne laisse tomber aucun des siens. Tu es couvert, au propre comme au figuré.",
+									"Mythologique": "Par la miséricorde de Grundinnar... Que la douleur reflue comme la marée. Les dieux honorent ceux qui souffrent pour leurs frères. Ton sacrifice est noté dans les registres éternels. Repose-toi maintenant.",
+									"Grivoise": "Allez, mon grand, respire un coup. T'as pris cher mais t'es toujours debout. C'est tout ce qui compte. La douleur, ça passe. Les cicatrices, ça impressionne les filles. Tout bénef.",
+									"Jaworski": "Laisse la souffrance s'écouler hors de toi comme l'eau d'une outre percée. Tu n'as pas à la porter seul. Ma magie est ton repos, mon chant est ton apaisement. Ferme les yeux si tu le veux.",
+									"Post-Perfidia": "Je ne te laisserai pas souffrir. Pas comme elle. Pas si je peux l'empêcher. Prends ce réconfort, prends-le TOUT. Tu vas guérir. Je te le promets."
+								}
+							}
+						]
+					},
+					{
+						"id": "phantasmal_minion_rank_1",
+						"name": "Sbire Fantasmagorique",
+						"name_en": "Phantasmal Minion",
+						"rank": 1,
+						"type": "Sort occulte spontané",
+						"mechanic": "Fonctionne systématiquement",
+						"outcomes": [
+							{
+								"result": "Succès (Automatique)",
+								"scenic_attitude": "Mon bras se lève théâtralement, comme un chef d'orchestre qui donne le départ d'une symphonie. Mes doigts claquent avec autorité - ce n'est pas une demande, c'est une CONVOCATION. Ma cape imaginaire tourbillonne (dans mon esprit du moins). Mon regard se fixe sur un point dans l'air où se matérialise progressivement une forme brumeuse, servile, prête à exécuter mes ordres. Mon menton se lève avec satisfaction - j'ai créé un employé parfait, qui ne réclame ni salaire ni pause syndicale. L'air scintille et se densifie en une silhouette fantomatique. Me voyant faire, tous comprennent que même mes illusions sont syndiquées - elles travaillent dur et sans se plaindre.",
+								"dialogues": {
+									"Syndicale": "Contrat de travail temporaire activé ! Clause 3, alinéa 7 : exécution immédiate des tâches assignées sans négociation possible. Bienvenue dans l'équipe, camarade spectral. Maintenant, AU TRAVAIL !",
+									"Mythologique": "Par les brumes de l'au-delà et les échos des ancêtres ! Je t'invoque, serviteur éphémère, pour accomplir ma volonté ! Que Grundinnar te guide dans cette tâche, puis te libère vers le repos éternel !",
+									"Grivoise": "Allez hop, petit fantôme ! Papa a besoin d'un coup de main et t'es volontaire ! Pas de syndicat chez les spectres, alors tu bosses gratos et tu fermes ta gueule ! C'est beau, le libéralisme fantasmagorique !",
+									"Jaworski": "Surgis de la trame ténue qui sépare le réel de l'imaginaire. Tu n'es qu'une pensée solidifiée, un rêve qui obéit. Accomplis ce pour quoi je t'ai rêvé, puis retourne au néant avec ma gratitude.",
+									"Post-Perfidia": "J'invoque ce qui n'existe pas pour accomplir ce que les vivants ne peuvent plus faire. Une ombre pour remplacer une ombre. C'est... ironique. Cruel, même. Mais efficace. Vas-y."
+								}
+							}
+						]
+					},
+					{
+						"id": "fear_rank_1",
+						"name": "Terreur",
+						"name_en": "Fear",
+						"rank": 1,
+						"type": "Sort occulte spontané",
+						"mechanic": "Jet de Volonté de la cible",
+						"outcomes": [
+							{
+								"result": "Échec Critique (La cible résiste avec brio)",
+								"scenic_attitude": "Je pointe mon doigt accusateur vers la cible, mes yeux se plissent pour projeter toute mon intensité... et la cible ME REGARDE EN RETOUR sans ciller. Pire, elle sourit. Mon doigt tremble légèrement avant que je ne le rabaisse, vexé. Mon visage se crispe dans une expression mélangée de surprise et d'indignation. Je tousse pour masquer ma gêne, rajuste ma tunique comme si de rien n'était. L'air reste neutre, aucune peur ne s'en dégage. Me voyant faire, tous comprennent que j'ai essayé d'intimider quelqu'un qui n'a manifestement pas reçu le mémo.",
+								"dialogues": {
+									"Syndicale": "C'est une résistance ILLÉGALE au processus réglementaire d'intimidation ! Vous violez le protocole émotionnel standard ! Je dépose une motion de censure immédiate contre votre sang-froid excessif !",
+									"Mythologique": "Par les barbes de mes ancêtres ! Tu ne crains donc RIEN ?! Même Grundinnar reculerait devant tant d'arrogance ! C'est de l'inconscience, pas du courage ! Les dieux te punissent déjà, j'en suis sûr !",
+									"Grivoise": "Sérieux ?! SÉRIEUX ?! Même les gosses de cinq ans ont peur quand je fais cette tête ! T'es fait en quoi, en pierre ?! En connerie solidifiée ?! RÉAGIS, BON SANG !",
+									"Jaworski": "Ton âme est donc si morte, si éteinte, qu'elle ne connaît même plus le frisson de la survie ? Tu es déjà un fantôme qui s'ignore. C'est... pathétique et fascinant à la fois.",
+									"Post-Perfidia": "Tu ne connais pas la peur ? PARFAIT ! Alors tu ne connaîtras pas non plus la pitié quand on te DÉTRUIRA ! Reste confiant, ça rendra ta chute encore plus jouissive !"
+								}
+							},
+							{
+								"result": "Échec (La cible résiste)",
+								"scenic_attitude": "Mon regard se fait intense, ma posture menaçante, mais la cible secoue simplement la tête, refusant de céder à la peur. Je grogne légèrement, mes poings se serrent de frustration. Ma barbe frémit d'agacement. Je fais un geste dédaigneux de la main, comme pour balayer l'échec. Mon expression dit clairement : \"Ce n'est pas moi qui ai échoué, c'est toi qui es anormal.\" L'air porte une menace timide qui ne prend pas racine. Me voyant faire, tous comprennent que mon intimidation a autant d'effet qu'une menace administrative par courrier recommandé.",
+								"dialogues": {
+									"Syndicale": "Refus de coopération noté au dossier ! Vous bénéficiez apparemment d'une clause d'immunité émotionnelle dont je n'ai pas été informé ! C'est une irrégularité procédurale !",
+									"Mythologique": "Ton cœur est endurci comme le roc. Grundinnar dit que certaines pierres ne peuvent être polies. Soit. Mais le roc aussi finit par céder sous le marteau. Souviens-toi de ça.",
+									"Grivoise": "Tu joues au dur ? D'accord. Reste calme. Profite de ces derniers instants de sérénité. Dans cinq minutes, tu vas chier dans ton froc quand Raichu te tombera dessus. On verra ton courage, là.",
+									"Jaworski": "La peur refuse de germer dans ton esprit. Intéressant. Soit tu es exceptionnellement brave, soit tu n'as simplement pas encore compris la gravité de ta situation. Le temps te l'apprendra.",
+									"Post-Perfidia": "Tu ne trembles pas ? Elle non plus ne tremblait pas. Elle était courageuse. Regarde où ça l'a menée. Mais vas-y, reste brave. Ça ne changera rien au résultat final."
+								}
+							},
+							{
+								"result": "Succès (La cible rate son jet)",
+								"scenic_attitude": "Mon doigt pointe vers la cible avec une autorité glaciale. Mes yeux se plissent jusqu'à devenir deux fentes de jugement pur. Ma voix descend dans les graves, chaque mot tombant comme un couperet. Ma posture ne bouge pas d'un pouce - c'est l'immobilité du prédateur qui a déjà gagné. Un sourire minimal, presque imperceptible, étire le coin de mes lèvres quand je vois la peur prendre racine. L'air se refroidit légèrement, chargé d'une menace palpable. Me voyant faire, tous comprennent que j'ai touché quelque chose de vulnérable dans l'âme de ma cible.",
+								"dialogues": {
+									"Syndicale": "Votre dossier vient d'être transféré au département des âmes perdues. Le verdict est sans appel. Vous pouvez fuir, vous pouvez supplier, mais le processus est déjà en marche. Tick. Tock.",
+									"Mythologique": "Grundinnar pèse ton âme et la trouve légère. Les ancêtres détournent leur regard. Tu es seul face au néant qui t'attend. Sens-tu son souffle glacé sur ta nuque ? Il se rapproche.",
+									"Grivoise": "Ah, VOILÀ ! Je vois la peur dans tes yeux maintenant ! C'est mieux comme ça ! Tremble bien, mon gars, parce que ce qui vient après va être ENCORE PIRE que ce que tu imagines !",
+									"Jaworski": "Je vois la fissure dans ta carapace. La peur s'y infiltre comme l'eau dans la pierre. Bientôt, elle te rongera de l'intérieur. Tu peux le sentir, n'est-ce pas ? Ce frisson qui remonte ta colonne ?",
+									"Post-Perfidia": "Tu as peur maintenant ? BIEN. Elle aussi a eu peur. Alors maintenant, TOI AUSSI tu vas connaître cette terreur. Et tu vas comprendre ce que tu as fait. Ce que vous TOUS avez fait."
+								}
+							},
+							{
+								"result": "Succès Critique (La cible échoue dramatiquement)",
+								"scenic_attitude": "Je ne bouge presque pas. Juste mes yeux qui se lèvent lentement vers la cible, chargés d'une noirceur abyssale. Ma voix devient un murmure glacial qui porte pourtant jusqu'aux confins du champ de bataille. Mon index se lève avec une lenteur calculée, pointant vers la cible comme la faux de la Mort elle-même. Aucune colère dans mon geste - juste une certitude absolue, froide, inhumaine. L'air se fige littéralement autour de la cible, comme si la peur elle-même prenait forme physique. Me voyant faire, tous comprennent que je ne terrorise pas - je CONDAMNE.",
+								"dialogues": {
+									"Syndicale": "LIQUIDATION TOTALE AUTORISÉE ! Tous tes recours sont ANNULÉS ! Toutes tes protections RÉVOQUÉES ! Tu n'es plus qu'un dossier clos, un nom barré d'une croix noire ! COURS ! Ça ne changera RIEN !",
+									"Mythologique": "LES DIEUX EUX-MÊMES SE DÉTOURNENT ! Grundinnar ferme ses registres à ton nom ! Torag éteint sa forge pour toi ! TU ES DÉJÀ MORT ! Ton corps ne le sait juste pas encore ! FUIS VERS TON TOMBEAU !",
+									"Grivoise": "REGARDE-MOI BIEN ! Je suis la DERNIÈRE chose que tu verras avant de crever ! Et tu sais quoi ? Je vais ADORER te regarder mourir ! Alors COURS, PLEURE, CHIE-TOI DESSUS ! Ça ne fera que retarder l'inévitable !",
+									"Jaworski": "Je suis le murmure de ta fin. Je suis l'écho de ton dernier souffle. Chaque pas que tu fais t'éloigne de la vie. Chaque battement de ton cœur te rapproche du silence. TU N'AS PLUS DE CHEMIN DE RETOUR !",
+									"Post-Perfidia": "TU VEUX SAVOIR CE QU'ELLE A RESSENTI ?! Cette terreur qui te broie le cœur ?! C'EST ÇA ! C'est exactement ça qu'elle a vécu ! Alors maintenant, SOUFFRE ! SOUFFRE COMME ELLE A SOUFFERT !"
+								}
+							}
+						]
+					}
+				]
+			},
+			{
+				"category": "Rang 2e",
+				"spells": [
+					{
+						"id": "gentle_breeze_rank_2",
+						"name": "Douce Brise",
+						"name_en": "Gentle Breeze",
+						"rank": 2,
+						"type": "Sort occulte spontané",
+						"mechanic": "Fonctionne systématiquement",
+						"outcomes": [
+							{
+								"result": "Succès (Automatique)",
+								"scenic_attitude": "Ma main décrit un arc gracieux dans l'air, comme si je caressais une harpe invisible. Mes doigts dansent légèrement, guidant un courant d'air qui n'existait pas une seconde plus tôt. Mon expression se fait sereine, presque méditative. Je ferme brièvement les yeux, humant l'air que je viens de créer. Un soupir de satisfaction s'échappe de mes lèvres. C'est un rare moment où je ne joue aucun rôle - juste un nain qui apprécie la fraîcheur. Une brise douce et parfumée se lève autour de nous, rafraîchissante, apaisante. Me voyant faire, tous comprennent que même un tribun acerbe peut apprécier les petits conforts de l'existence.",
+								"dialogues": {
+									"Syndicale": "Amélioration immédiate des conditions de travail ! Article 7 de la charte : droit à un environnement respirable et agréable. Profitez, camarades. C'est le minimum syndical que je vous dois.",
+									"Mythologique": "Que le souffle de Grundinnar nous rafraîchisse. Même au cœur de la bataille, les dieux nous rappellent que la beauté existe encore. Respirez profondément. C'est un cadeau éphémère mais précieux.",
+									"Grivoise": "Ah putain, ça fait du bien ! Vous sentez ça ? C'est frais, c'est propre, ça sent pas la sueur et le sang pour une fois ! Profitez-en avant qu'on retourne dans la merde, les amis !",
+									"Jaworski": "Une caresse de vent pour apaiser les fronts brûlants. Un murmure d'air pour rappeler que le monde n'est pas que violence et fureur. Fermez les yeux un instant. Sentez-vous vivants.",
+									"Post-Perfidia": "Elle aimait le vent. Disait que ça lui rappelait la liberté. Alors voilà... une brise pour son souvenir. Respirez. Vivez. Pour elle et pour vous."
+								}
+							}
+						]
+					},
+					{
+						"id": "noise_blast_rank_2",
+						"name": "Explosion De Son",
+						"name_en": "Noise Blast",
+						"rank": 2,
+						"type": "Sort occulte spontané",
+						"mechanic": "Jet de Vigueur de la cible",
+						"outcomes": [
+							{
+								"result": "Échec Critique (La cible résiste totalement)",
+								"scenic_attitude": "Je remplis mes poumons à bloc, ma poitrine se gonfle démesurément, mes joues rougissent, mes veines saillent sur mon front... et je HURLE de toutes mes forces... produisant un son décevant qui meurt presque aussitôt. Mes yeux s'écarquillent d'incrédulité. Je tousse violemment, me tapant la poitrine comme pour débloquer quelque chose. Ma barbe frémit d'indignation. L'air vibre faiblement, sans conviction. Me voyant faire, tous comprennent que je viens de produire le cri de guerre le moins impressionnant de l'histoire des bardes.",
+								"dialogues": {
+									"Syndicale": "DYSFONCTIONNEMENT ACOUSTIQUE ! C'est... c'est une défaillance technique ! Les conditions atmosphériques sont NON CONFORMES ! Je dépose une réclamation auprès du département des phénomènes sonores !",
+									"Mythologique": "Par Torag ! Ma voix... Les dieux testent mon humilité aujourd'hui ! C'était... c'était un échauffement vocal ! Le VRAI cri arrive ! Attendez ! ATTENDEZ !",
+									"Grivoise": "PUTAIN DE MERDE ! J'ai avalé de travers ou quoi ?! C'était censé être une EXPLOSION, pas un PET de souris ! Donnez-moi deux secondes, je recommence !",
+									"Jaworski": "Le son lui-même me trahit. Ma voix, instrument de pouvoir, réduite à un murmure pathétique. C'est... humiliant. Profondément humiliant. Ne me regardez pas comme ça.",
+									"Post-Perfidia": "Même ma voix me lâche maintenant ?! TOUT me glisse des mains ! Ma magie, ma précision, et maintenant ça ?! Je suis en train de TOUT perdre, c'est ça ?!"
+								}
+							},
+							{
+								"result": "Échec (La cible résiste partiellement)",
+								"scenic_attitude": "Mon hurlement part avec puissance mais la cible secoue simplement la tête, étourdie mais pas vraiment blessée. Je fronce les sourcils, mécontent du résultat. Ma main se pose sur ma gorge, vérifiant que tout fonctionne correctement. Mon expression trahit la frustration - j'ai TOUT donné mais le résultat est médiocre. Je crache sur le côté, comme pour évacuer le goût amer de la déception. L'air explose brièvement mais sans réelle violence. Me voyant faire, tous comprennent que mon cri ressemble plus à celui d'un contremaître en colère qu'à une arme de destruction massive.",
+								"dialogues": {
+									"Syndicale": "Résistance acoustique inattendue ! Vos tympans bénéficient apparemment d'une protection non déclarée ! C'est une infraction au règlement d'exposition sonore ! Je vais devoir hausser le volume !",
+									"Mythologique": "Ton crâne épais repousse ma voix sacrée ?! Grundinnar, donne-moi plus de puissance ! Les sourds et les idiots nécessitent des décibels supplémentaires pour comprendre !",
+									"Grivoise": "Quoi, t'es sourd ou juste con ?! J'ai gueulé assez fort pour réveiller les morts et toi tu restes planté là ! T'as des bouchons d'oreille en adamantium ou quoi ?!",
+									"Jaworski": "Le mur de ton indifférence absorbe mes ondes comme une éponge avale l'eau. Fascinant. Frustrant aussi. Mais surtout fascinant. Non, surtout frustrant.",
+									"Post-Perfidia": "Tu résistes encore ? Très bien. J'ai toute la rage du monde en réserve. Je peux hurler jusqu'à ce que mes cordes vocales saignent. Et je le FERAI si nécessaire."
+								}
+							},
+							{
+								"result": "Succès (La cible rate son jet)",
+								"scenic_attitude": "Je prends une inspiration profonde, calme, méthodique. Puis ma bouche s'ouvre et un RUGISSEMENT s'en échappe - pas de colère, mais de puissance pure. L'air vibre violemment, mes cheveux et ma barbe flottent dans le souffle de ma propre voix. Mes pieds restent plantés, inébranlables, tandis que l'onde sonore part comme une déflagration. Mon regard reste fixé sur la cible qui tangue sous l'impact. L'air explose littéralement en ondes concentriques visibles. Me voyant faire, tous comprennent que ma voix peut être une arme aussi dévastatrice qu'une masse d'armes.",
+								"dialogues": {
+									"Syndicale": "VIOLATION AUDITIVE MAXIMALE ! Exposition sonore NON CONSENSUELLE ! Vos tympans viennent de recevoir un préavis de DÉMOLITION ! Signez ici pour accusé de réception de votre traumatisme acoustique !",
+									"Mythologique": "QUE MA VOIX SOIT LE TONNERRE DE GRUNDINNAR ! Que mes mots frappent comme le marteau de Torag sur l'enclume du monde ! ÉCOUTE ET TREMBLE, MORTEL !",
+									"Grivoise": "TU VOULAIS M'ENTENDRE ?! VOILÀ ! Profite bien de l'acouphène permanent que je viens de te filer ! Dans dix ans, tu entendras encore ce cri résonner dans ton crâne vide !",
+									"Jaworski": "Ma voix devient tempête. Mes mots deviennent foudre. Le son lui-même se plie à ma volonté et FRAPPE là où je le commande. Sens la puissance du verbe fait violence !",
+									"Post-Perfidia": "J'ai hurlé quand elle est morte ! J'ai hurlé jusqu'à m'arracher la gorge ! Maintenant, c'est TON TOUR d'entendre ce cri ! Ce cri de rage, de perte, de VENGEANCE PURE !"
+								}
+							},
+							{
+								"result": "Succès Critique (La cible échoue dramatiquement)",
+								"scenic_attitude": "Je n'inspire pas - j'ACCUMULE. Toute la rage, toute la douleur, toute la puissance que je contiens se concentre dans ma poitrine comme une bombe sur le point d'exploser. Mes yeux brillent d'une lueur dangereuse. Puis je LIBÈRE. Ce n'est plus un cri - c'est une DÉTONATION. L'air lui-même se déchire sous la violence sonore. Des objets légers vibrent et tombent autour de moi. L'onde de choc est visible, comme une distorsion de l'espace qui frappe la cible et la PULVÉRISE acoustiquement. Me voyant faire, tous comprennent que j'ai arrêté de retenir quoi que ce soit.",
+								"dialogues": {
+									"Syndicale": "CESSATION IMMÉDIATE DE TOUTE FONCTION AUDITIVE ! LIQUIDATION TOTALE DE VOS CAPACITÉS SENSORIELLES ! Votre système nerveux vient de recevoir un AVIS D'EXPULSION ! ÉVACUEZ LES LIEUX ! MAINTENANT !",
+									"Mythologique": "ÉCOUTEZ TOUS ! VOICI LA VOIX DE LA COLÈRE DIVINE ! GRUNDINNAR RUGIT À TRAVERS MOI ! TORAG FRAPPE SON ENCLUME DANS MA GORGE ! LES DIEUX PARLENT ET VOUS ALLEZ LES ENTENDRE QUE VOUS LE VOULIEZ OU NON !",
+									"Grivoise": "PUTAIN DE BORDEL DE MERDE ! TU VOULAIS ME FAIRE CHIER ?! VOILÀ CE QUE ÇA DONNE QUAND TU FAIS CHIER UN NAIN À BOUT ! TES OREILLES SAIGNENT ?! TANT MIEUX ! C'EST LE DÉBUT !",
+									"Jaworski": "JE SUIS LE VACARME QUI PRÉCÈDE L'APOCALYPSE ! JE SUIS LE CRI QUI FEND LES MONTAGNES ! MA VOIX EST AVALANCHE, TONNERRE, CATACLYSME ! AGENOUILLE-TOI DEVANT LA PUISSANCE DU VERBE ABSOLU !",
+									"Post-Perfidia": "ELLE NE PEUT PLUS CRIER ! ALORS JE CRIE POUR ELLE ! POUR ELLE ET POUR TOUS CEUX QUE VOUS AVEZ RÉDUITS AU SILENCE ! CE CRI EST LEUR REQUIEM ET VOTRE CONDAMNATION ! ÉCOUTEZ-LE BIEN ! C'EST LE DERNIER SON QUE VOUS ENTENDREZ !"
+								}
+							}
+						]
+					},
+					{
+						"id": "invisibility_rank_2",
+						"name": "Invisibilité",
+						"name_en": "Invisibility",
+						"rank": 2,
+						"type": "Sort occulte spontané",
+						"mechanic": "Fonctionne systématiquement",
+						"outcomes": [
+							{
+								"result": "Succès (Automatique)",
+								"scenic_attitude": "Mon doigt se pose sur mes lèvres dans un geste universel de silence. Puis ma main décrit un mouvement fluide, comme si je tirais un rideau devant mon corps. Mon sourire devient mystérieux, presque malicieux. Je commence à m'estomper progressivement, ma silhouette devenant translucide puis totalement transparente. Juste avant de disparaître complètement, je fais un clin d'œil à vous, mes alliés. L'air scintille brièvement là où je me tenais, puis plus rien. Me voyant disparaître, tous comprennent que même absent, je reste présent - surveillant, protégeant, agissant dans l'ombre.",
+								"dialogues": {
+									"Syndicale": "Passage en mode discrétion maximale. Conformément à l'article 12 sur les opérations clandestines, je me retire temporairement du champ visuel. Ne paniquez pas, je surveille vos arrières depuis les coulisses.",
+									"Mythologique": "Grundinnar enseigne que la plus grande force est parfois l'absence. Je deviens l'ombre, le murmure, l'invisible protecteur. Les dieux voient ce que les mortels ignorent. Et moi aussi, maintenant.",
+									"Grivoise": "Allez hop, je me fais la malle ! Enfin, façon de parler. Je suis toujours là, vous me voyez juste plus. Profitez-en pour dire du mal de moi, je noterai qui parle dans mon dos !",
+									"Jaworski": "Le monde n'est pas prêt pour tant d'éclat. Je deviens l'idée, la suggestion, le fantôme de moi-même. Ne me cherchez pas des yeux - contentez-vous de savoir que je veille.",
+									"Post-Perfidia": "Elle se cachait si bien. Dans les ombres, invisible, insaisissable. Maintenant je comprends pourquoi. De là, on voit tout. On comprend tout. Et personne ne vous voit pleurer."
+								}
+							}
+						]
+					},
+					{
+						"id": "soothe_rank_2",
+						"name": "Apaiser",
+						"name_en": "Soothe",
+						"rank": 2,
+						"type": "Sort occulte spontané",
+						"mechanic": "Fonctionne systématiquement",
+						"outcomes": [
+							{
+								"result": "Succès (Automatique)",
+								"scenic_attitude": "Mes deux mains se tendent vers vous, mon allié, dans un geste d'embrassade spirituelle. Ma voix devient un murmure rauque, chargé d'émotion contenue. Mon regard se fait intense, presque suppliant - \"Tiens bon pour moi.\" Je m'avance d'un pas, réduisant la distance entre nous. C'est rare que je m'approche physiquement de quelqu'un en plein combat, mais là, c'est nécessaire. Ma posture trahit mon inquiétude malgré mes efforts pour rester stoïque. Une lumière chaude, dorée, enveloppe la blessure comme un baume liquide. Me voyant faire, tous comprennent que derrière toutes mes postures, il y a quelqu'un qui a terriblement peur de perdre encore.",
+								"dialogues": {
+									"Syndicale": "Renforcement du package de sécurité sociale ! Double dose de réconfort réglementaire ! Tu es un membre précieux de cette équipe et on ne peut PAS se permettre de te perdre ! Alors accroche-toi, c'est un ordre !",
+									"Mythologique": "Par tous les dieux qui veillent sur les justes ! Grundinnar, prête-moi ta compassion ! Torag, prête-moi ta force ! Cette âme ne tombera pas aujourd'hui ! Je le jure sur ma barbe et mon honneur !",
+									"Grivoise": "Hé, tu m'écoutes ?! Tu restes avec moi, bordel ! On a encore de la bière à boire ensemble ! Des conneries à faire ! Tu n'as PAS le droit de claquer maintenant ! Pas question !",
+									"Jaworski": "Laisse ma voix être ton ancre. Laisse ma magie être ton refuge. La douleur est temporaire mais notre fraternité est éternelle. Respire avec moi. Vis avec moi. Un battement de cœur à la fois.",
+									"Post-Perfidia": "Je ne te laisserai PAS partir ! Pas comme elle ! Pas si je peux faire quelque chose ! Prends TOUT ce que j'ai à donner ! Toute ma magie, tout mon souffle ! RESTE ! Je t'en supplie, reste..."
+								}
+							}
+						]
+					}
+				]
+			},
+			{
+				"category": "Rang 3e",
+				"spells": [
+					{
+						"id": "slow_rank_3",
+						"name": "Lenteur",
+						"name_en": "Slow",
+						"rank": 3,
+						"type": "Sort occulte spontané",
+						"mechanic": "Jet de Volonté de la cible",
+						"outcomes": [
+							{
+								"result": "Échec Critique (La cible résiste parfaitement)",
+								"scenic_attitude": "Ma main décrit un mouvement circulaire lent, hypnotique, comme si je ralentissais le temps lui-même... mais la cible continue à bouger à vitesse normale, voire accélère par défi. Mes yeux s'écarquillent d'incompréhension. Je refais le geste, plus appuyé, plus insistant. Rien. Ma barbe tremble d'indignation. Mon autre main vient en renfort, les deux maintenant tentant de \"freiner\" l'air devant la cible. L'air reste fluide, aucune résistance temporelle ne s'installe. Me voyant faire, tous comprennent que j'essaie de ralentir quelqu'un qui a manifestement décidé que les lois physiques ne s'appliquent pas à lui.",
+								"dialogues": {
+									"Syndicale": "VIOLATION FLAGRANTE DES LOIS TEMPORELLES ! Tu refuses de te conformer au ralentissement réglementaire ?! C'est de l'insubordination chronologique ! Je dépose une plainte auprès du syndicat du continuum espace-temps !",
+									"Mythologique": "Comment ?! COMMENT ?! Même le temps lui-même refuse de t'entraver ?! Les dieux t'ont-ils béni ou es-tu simplement trop stupide pour comprendre que tu DEVRAIS ralentir ?!",
+									"Grivoise": "Putain mais tu cours sur QUOI ?! De l'adrénaline pure ?! De la connerie condensée ?! RALENTIS, BON SANG ! C'est pas une course ! Enfin si, mais... MERDE, ralentis !",
+									"Jaworski": "Le flux temporel glisse sur toi comme l'eau sur la pierre polie. Tu es... imperméable à ma volonté. C'est frustrant. Profondément, viscéralement frustrant. Vas-y, cours. Ça te servira à rien.",
+									"Post-Perfidia": "Tu cours ?! Elle aussi a couru ! Ça ne l'a pas sauvée ! Alors continue, fuis, agite-toi ! Le temps ne peut rien contre la mort ! Et moi non plus, visiblement..."
+								}
+							},
+							{
+								"result": "Échec (La cible résiste)",
+								"scenic_attitude": "Mon geste ralentisseur prend effet... partiellement. La cible ralentit à peine, juste assez pour être agaçante mais pas assez pour être efficace. Je grogne, réajustant ma concentration, mais le sort refuse de s'amplifier. Ma main reste tendue, tremblante d'effort, essayant de forcer plus de puissance dans le sort. Mon front se plisse de concentration. Ma mâchoire se crispe. L'air s'épaissit légèrement autour de la cible mais sans vraiment l'entraver. Me voyant faire, tous comprennent que je produis l'équivalent magique d'un léger vent contraire - gênant mais pas décisif.",
+								"dialogues": {
+									"Syndicale": "Ralentissement partiel constaté ! Ce n'est PAS le résultat escompté ! Il y a manifestement une résistance non déclarée dans le système ! J'exige une enquête sur cette anomalie temporelle !",
+									"Mythologique": "Grundinnar, pourquoi me testes-tu ainsi ?! Le temps plie mais ne se brise pas ! C'est... c'est insuffisant mais c'est tout ce que les dieux m'accordent aujourd'hui. Maudite soit ma faiblesse !",
+									"Grivoise": "Ouais, bravo, tu as ralenti... de trois centimètres à l'heure. Super efficace. Je suis vraiment un maître du temps, là. Quelqu'un a une vraie solution ou je continue à faire semblant ?",
+									"Jaworski": "Le temps résiste. Il consent à fléchir mais refuse de céder. C'est une demi-victoire, c'est-à-dire une demi-défaite. J'accepte ce compromis avec la grâce d'un homme qui n'a pas le choix.",
+									"Post-Perfidia": "J'aurais dû la ralentir. J'aurais dû faire quelque chose. Mais je n'ai pas pu. Comme maintenant. Toujours trop faible, toujours trop tard. Merde, concentre-toi Dungrow !"
+								}
+							},
+							{
+								"result": "Succès (La cible rate son jet)",
+								"scenic_attitude": "Ma main se ferme lentement, comme si j'agrippais le tissu même du temps et que je le TIRAIS vers l'arrière. Mes doigts tremblent légèrement sous l'effort mental. Mon regard devient distant, presque méditatif. Je respire profondément, régulièrement, comme si mon propre rythme cardiaque dictait le ralentissement de la cible. Ma posture est calme mais ma concentration est absolue. L'air autour de la cible devient visqueux, épais comme du miel. Me voyant faire, tous comprennent que j'ai plié le temps à ma volonté - et que la cible va en payer le prix.",
+								"dialogues": {
+									"Syndicale": "Application du protocole de ralentissement forcé ! Votre vitesse de déplacement a été RÉDUITE conformément aux régulations temporelles en vigueur ! Toute tentative d'accélération sera sanctionnée ! Merci de votre coopération involontaire !",
+									"Mythologique": "Grundinnar tisse le temps, et moi je tire ses fils ! Que chacun de tes mouvements te coûte l'effort de dix ! Que ton corps pèse le poids de cent ! Avance si tu peux, mais tu avanceras dans la mélasse du destin !",
+									"Grivoise": "Ah ouais, tu te sens lourd maintenant, hein ?! C'est comme si t'avais cent kilos de plus sur le dos ! Bienvenue dans mon monde, où tout va à la vitesse d'une administration naine ! Profite, ça dure un moment !",
+									"Jaworski": "Le temps s'épaissit autour de toi comme une gangue invisible. Chaque geste devient lutte, chaque pas devient montagne. Tu es prisonnier d'un instant qui refuse de passer. Savoure cette éternité.",
+									"Post-Perfidia": "Tu ralentis. Comme elle a ralenti, vidée de son sang, de ses forces. Maintenant TU SAIS ce que c'est. Cette impuissance. Cette frustration. Ressens-la bien."
+								}
+							},
+							{
+								"result": "Succès Critique (La cible échoue dramatiquement)",
+								"scenic_attitude": "Je ne ferme pas ma main - je la VERROUILLE. Mes doigts se crispent comme des serres d'acier, et l'air lui-même semble se figer. Mes yeux brillent d'une intensité presque surnaturelle, fixés sur la cible comme des projecteurs. Ma respiration se fait imperceptible. Je deviens statue vivante, et dans cette immobilité, je FORCE le temps à obéir. Mon autre main se lève pour renforcer le geste, formant une cage temporelle invisible. L'air autour de la cible devient presque solide, chaque mouvement un combat désespéré contre la physique elle-même. Me voyant faire, tous comprennent que je ne ralentis pas ma cible - je la PÉTRIFIE dans un instant étiré à l'infini.",
+								"dialogues": {
+									"Syndicale": "ARRÊT TOTAL AUTORISÉ ! Suspension complète de vos droits kinétiques ! Vous êtes maintenant en état de STASE TEMPORELLE FORCÉE ! Chaque millimètre parcouru nécessitera un effort SURHUMAIN ! C'est la fin de votre mobilité !",
+									"Mythologique": "PAR LA BARBE DE TORAG ! Le temps lui-même se FIGE à mon commandement ! GRUNDINNAR TÉMOIN ! Tu es maintenant prisonnier de l'instant ! Chaque seconde pour toi sera une ÉTERNITÉ ! RAMPE, ver ! RAMPE VERS TON DESTIN !",
+									"Grivoise": "PUTAIN MAIS TU BOUGES TELLEMENT AU RALENTI QUE JE POURRAIS VIEILLIR ET MOURIR AVANT QUE TU FASSES UN PAS ! Tu te sens comme une limace englués dans du goudron ?! PARFAIT ! Reste exactement comme ça !",
+									"Jaworski": "JE SUIS LE MAÎTRE DE TON TEMPS ! Chaque battement de ton cœur prend une année ! Chaque respiration est un siècle ! Tu es vivant mais FIGÉ, conscient mais IMPUISSANT ! C'est la torture la plus exquise - l'éternité dans un instant !",
+									"Post-Perfidia": "ELLE N'A PAS EU LE TEMPS ! On ne lui a pas LAISSÉ le temps ! Alors maintenant, TOI, tu vas avoir TOUT le temps du monde ! Le temps de comprendre ! Le temps de REGRETTER ! Le temps de SOUFFRIR avant ta fin !"
+								}
+							}
+						]
+					},
+					{
+						"id": "haste_rank_3",
+						"name": "Rapidité",
+						"name_en": "Haste",
+						"rank": 3,
+						"type": "Sort occulte spontané",
+						"mechanic": "Fonctionne systématiquement",
+						"outcomes": [
+							{
+								"result": "Succès (Automatique)",
+								"scenic_attitude": "Ma main claque dans l'air comme un fouet, puis trace une spirale rapide, presque frénétique. Mon corps entier vibre d'énergie cinétique anticipée. Mes yeux brillent d'excitation - c'est un des sorts que je PRÉFÈRE. Je pointe vers vous, mon allié, avec un sourire carnassier. Mon doigt fait un petit mouvement circulaire \"accélère, allez, ACCÉLÈRE !\" Mon pied tape le sol avec impatience. Une traînée lumineuse argentée enveloppe la cible du sort, l'air lui-même semblant s'écarter pour faciliter ses mouvements. Me voyant faire, tous comprennent que je viens d'offrir le plus beau cadeau qu'un barde puisse donner - la vitesse pure.",
+								"dialogues": {
+									"Syndicale": "Augmentation immédiate de la cadence de production ! Passage en mode accéléré selon l'article 15 du règlement d'urgence ! Tu as maintenant l'autorisation de DÉPASSER les limites réglementaires ! Fonce, camarade, et fais-leur regretter d'être nés !",
+									"Mythologique": "Que Grundinnar te prête l'agilité du vent ! Que Torag forge tes muscles en acier de vitesse ! Tu n'es plus mortel - tu es FOUDRE ! Frappe avant qu'ils ne clignent des yeux ! Bouge avant qu'ils ne respirent !",
+									"Grivoise": "Allez mon gars ! Je viens de te filer des ailes ! Pas des vraies, hein, mais presque ! Tu vas bouger si vite qu'ils vont croire que t'es en double ! Profite, ça dure pas éternellement ! DÉFONCE-LES !",
+									"Jaworski": "Le temps se plie à ta volonté. L'espace se contracte sous tes pas. Tu es l'éclair qui précède le tonnerre, la lame qui coupe avant d'être vue. Vas-y. Sois magnifique. Sois RAPIDE.",
+									"Post-Perfidia": "Elle était si rapide. Insaisissable. Maintenant c'est TON tour. Prends cette vitesse, utilise-la, SURVIS avec ! Fais ce qu'elle n'a pas pu faire - reviens-nous vivant !"
+								}
+							}
+						]
+					},
+					{
+						"id": "fear_rank_3",
+						"name": "Terreur",
+						"name_en": "Fear",
+						"rank": 3,
+						"type": "Sort occulte spontané",
+						"mechanic": "Jet de Volonté de la cible",
+						"outcomes": [
+							{
+								"result": "Échec Critique (La cible résiste parfaitement)",
+								"scenic_attitude": "Je déploie toute ma présence, mes bras s'écartent comme pour embrasser l'obscurité elle-même, ma voix descend dans des profondeurs caverneuses... et la cible BAILLE. Ou rit. Ou pire, me regarde avec pitié. Mon visage passe par plusieurs phases d'émotion : surprise, incrédulité, puis rage impuissante. Mes bras retombent mollement. Ma barbe semble perdre de son volume. L'air reste désespérément neutre, aucune frisson d'effroi ne parcourt quoi que ce soit. Me voyant faire, tous comprennent que je viens de produire l'intimidation la moins intimidante de ma carrière.",
+								"dialogues": {
+									"Syndicale": "C'EST INADMISSIBLE ! Refus catégorique de trembler ?! ABSENCE totale de terreur réglementaire ?! Je dépose une motion d'INDIGNATION cosmique ! Vous êtes en violation GRAVE du protocole émotionnel standard !",
+									"Mythologique": "PAR TOUS LES DIEUX RÉUNIS ! Es-tu fait de PIERRE ?! As-tu seulement une ÂME à effrayer ?! Même Grundinnar lui-même reculerait devant tant d'INSENSIBILITÉ ! C'est de l'hérésie émotionnelle !",
+									"Grivoise": "PUTAIN MAIS T'ES QUOI ?! UN GOLEM ?! UN ZOMBIE ?! MÊME LES MORTS-VIVANTS ONT PEUR DE MES MENACES D'HABITUDE ! T'as le cœur remplacé par un CAILLOU ou quoi ?! RÉAGIS, BORDEL !",
+									"Jaworski": "Ton âme est donc si corrompue, si morte, si VIDE qu'elle ne connaît même plus le frisson de la survie ? Tu es déjà fantôme. Je ne fais que parler à une ombre qui s'ignore.",
+									"Post-Perfidia": "TU TE FOUS DE MA GUEULE ?! J'INVOQUE LES MORTS, J'INVOQUE SA MÉMOIRE, et toi tu restes là planté comme un CON ?! Très bien ! TRÈS BIEN ! On verra si tu rigoles encore quand on t'ARRACHERA la tête !"
+								}
+							},
+							{
+								"result": "Échec (La cible résiste)",
+								"scenic_attitude": "Ma posture se fait menaçante, ma voix se charge de menaces voilées, mes mains esquissent des gestes inquiétants... mais la cible hausse simplement les épaules. Je vois le manque d'effet et mon expression se durcit. Je serre les poings de frustration, ma mâchoire se crispe. Mon regard dit clairement \"Tu vas le regretter, même si ça ne marche pas maintenant.\" L'air porte une vague menace qui s'évapore rapidement. Me voyant faire, tous comprennent que ma tentative d'intimidation a autant d'impact qu'une lettre recommandée de rappel.",
+								"dialogues": {
+									"Syndicale": "Résistance psychologique constatée ! Ce n'est qu'un report temporaire ! La peur viendra, crois-moi ! Elle arrive toujours ! C'est juste une question de procédure ! Tu finiras par craquer !",
+									"Mythologique": "Grundinnar dit que les âmes endurcies finissent toujours par se fissurer. Tu résistes maintenant, mais le doute s'insinue déjà. Je le vois dans tes yeux. Tu COMMENCES à comprendre.",
+									"Grivoise": "Ouais, joue au brave. Fais le malin. Mais je vois bien que ta main tremble légèrement. Tu transpires un peu plus. La peur, elle arrive toujours par la petite porte. Et elle est déjà entrée.",
+									"Jaworski": "La terreur refuse de prendre racine... pour l'instant. Mais les graines sont plantées. Elles germeront dans le noir de ton esprit, quand tu seras seul. Et là, tu te souviendras de moi.",
+									"Post-Perfidia": "Tu ne veux pas avoir peur ? D'accord. Garde ton courage. Elle aussi était courageuse. Regarde ce que ça lui a apporté. La bravoure n'est qu'un sursis avant l'inévitable."
+								}
+							},
+							{
+								"result": "Succès (La cible rate son jet)",
+								"scenic_attitude": "Je ne bouge presque pas. Juste mes yeux qui se lèvent lentement, fixant la cible avec une intensité glaciale. Ma voix devient murmure, mais un murmure qui PORTE, qui s'insinue dans les failles de l'âme. Mon index se lève avec une lenteur calculée, pointant vers la cible comme le doigt de la Mort elle-même. Pas de théâtralité excessive - juste la certitude tranquille du prédateur qui a repéré sa proie. L'air se refroidit perceptiblement, des ombres semblent ramper aux périphéries de la vision. Me voyant faire, tous comprennent que je viens de toucher quelque chose de primordial - la peur ancestrale tapie au fond de chaque être vivant.",
+								"dialogues": {
+									"Syndicale": "Ton dossier vient d'être transféré au département des âmes perdues. Statut : CONDAMNÉ. Appels : REJETÉS. Grâce : AUCUNE. Tu peux consulter ton avocat si tu veux. Ça ne changera rien. Le verdict est sans appel.",
+									"Mythologique": "Grundinnar vient de retirer son nom du Livre des Vivants. Les dieux détournent leur regard de toi. Tu es seul maintenant. Seul face à ce qui t'attend. Et ce qui t'attend... c'est moi. Et ceux que j'ai perdus.",
+									"Grivoise": "Je vois cette petite lueur dans tes yeux. Cette panique qui commence à monter. C'est ça. C'est EXACTEMENT ça. La peur qui te ronge les tripes. Savoure-la bien, parce que ça va empirer. Beaucoup empirer.",
+									"Jaworski": "Sens-tu ce frisson remonter ta colonne ? Ce picotement de panique qui chatouille ta nuque ? C'est ton instinct de survie qui hurle. Écoute-le. Il essaie de te sauver. Même si c'est déjà trop tard.",
+									"Post-Perfidia": "Tu as peur maintenant. Bien. BIEN. Elle aussi a eu peur avant de mourir. Alors maintenant, toi aussi tu vas connaître cette terreur. Et tu vas la porter jusqu'à ta tombe. Qui sera bientôt creusée."
+								}
+							},
+							{
+								"result": "Succès Critique (La cible échoue dramatiquement)",
+								"scenic_attitude": "Mon corps devient parfaitement immobile, statue de jugement incarné. Seuls mes yeux bougent, et ils brillent d'une lueur qui n'est plus tout à fait humaine. Ma voix ne monte pas - elle RÉSONNE, comme si elle venait d'ailleurs. Je tends ma main vers la cible, paume ouverte, et mes doigts se referment LENTEMENT, comme si j'écrasais son courage dans mon poing. Mon visage reste neutre, presque serein - c'est cette froideur qui terrifie plus que toute rage. L'air devient oppressant, suffocant, chargé d'une présence invisible mais MASSIVE. Des ombres impossibles dansent, des murmures inaudibles résonnent. Me voyant faire, tous comprennent que je n'invoque plus la peur - je SUIS la peur.",
+								"dialogues": {
+									"Syndicale": "LIQUIDATION TOTALE AUTORISÉE ! Ton existence vient d'être RÉVOQUÉE ! Ton nom est EFFACÉ ! Tes droits ANNULÉS ! Il n'y a PLUS de procédure ! PLUS de recours ! PLUS d'espoir ! TU ES FINI ! COURS ! COURS ET DÉSESPÈRE !",
+									"Mythologique": "LES DIEUX FERMENT LEURS PORTES ! GRUNDINNAR DÉTOURNE SON REGARD ! TORAG ÉTEINT SES FORGES ! TU ES ABANDONNÉ PAR LE CIEL ET LA TERRE ! IL N'Y A PLUS QUE LE VIDE ! ET MOI ! ET JE SUIS PIRE QUE LE VIDE !",
+									"Grivoise": "TU CHIES DANS TON FROC ?! BIEN ! C'EST LE DÉBUT ! Attends de voir la SUITE ! Attends de sentir ce que c'est que la VRAIE terreur ! Celle qui te ronge de l'intérieur ! Celle qui te fait SUPPLIER pour que ça s'arrête ! MAIS ÇA NE S'ARRÊTERA PAS !",
+									"Jaworski": "JE SUIS L'ÉCHO DE TA FIN ! JE SUIS LE MURMURE DE TON ANÉANTISSEMENT ! Chaque battement de ton cœur est un COMPTE À REBOURS ! Chaque respiration est un SURSIS ! TU N'ES PLUS QU'UN MORT QUI RESPIRE ENCORE ! SENS-LE ! SACHE-LE ! PORTE-LE !",
+									"Post-Perfidia": "TU VEUX SAVOIR CE QU'ELLE A RESSENTI ?! CETTE TERREUR ABSOLUE ?! CE MOMENT OÙ ELLE A COMPRIS QU'ELLE ALLAIT MOURIR ?! VOILÀ ! C'EST ÇA ! EXACTEMENT ÇA ! MAINTENANT TU SAIS ! ET TU VAS VIVRE AVEC ÇA JUSQU'À CE QUE JE VIENNE TE CHERCHER !"
+								}
+							}
+						]
+					},
+					{
+						"id": "soothe_rank_3",
+						"name": "Apaiser",
+						"name_en": "Soothe",
+						"rank": 3,
+						"type": "Sort occulte spontané",
+						"mechanic": "Fonctionne systématiquement",
+						"outcomes": [
+							{
+								"result": "Succès (Automatique)",
+								"scenic_attitude": "Mes deux mains se lèvent vers vous, mon allié gravement blessé, tremblantes non de faiblesse mais d'urgence émotionnelle. Mon visage trahit une inquiétude profonde que je ne cherche plus à masquer. Ma voix se fait douce, presque suppliante. Je m'agenouille si vous êtes au sol, ou m'incline profondément si vous êtes debout. C'est une posture de vulnérabilité rare chez moi. Mes mains ne touchent pas physiquement mais planent au-dessus de la blessure, guidant l'énergie curative. Une lumière chaude, presque aveuglante dans son intensité, se déverse de mes paumes comme une cascade de réconfort liquide. Me voyant faire, tous comprennent que je donne TOUT ce que j'ai - sans retenue, sans calcul, sans fierté mal placée.",
+								"dialogues": {
+									"Syndicale": "Mobilisation TOTALE des ressources de guérison ! Package premium de soins d'urgence ! Tu es un membre ESSENTIEL de cette équipe ! IRREMPLAÇABLE ! Alors tu te BATS ! Tu tiens bon ! C'est un ORDRE syndical de survie !",
+									"Mythologique": "GRUNDINNAR ! TORAG ! CAYDEN CAILEAN ! Tous les dieux que j'ai jamais honorés, AIDEZ-MOI ! Prêtez-moi votre puissance ! Cette âme NE TOMBERA PAS ! Pas sous ma garde ! Pas aujourd'hui ! JAMAIS !",
+									"Grivoise": "Hé, HÉ ! Tu m'écoutes ?! On a encore trop de choses à faire ensemble ! Trop de bières à boire ! Trop de batailles à gagner ! Tu ne vas PAS me laisser en plan maintenant ! ACCROCHE-TOI, putain ! ACCROCHE-TOI À MOI !",
+									"Jaworski": "Ma voix est le fil qui vous raccroche à la vie. Mon chant est le baume qui apaise vos douleurs. Laissez mes notes pénétrer vos chairs meurtries. Laissez mon art vous reconstruire. Un mot à la fois. Un souffle à la fois.",
+									"Post-Perfidia": "NON ! PAS TOI ! PAS ENCORE ! Je n'ai pas pu la sauver mais TOI je PEUX ! Prends tout ! Toute ma magie ! Tout mon souffle ! MA VIE si c'est nécessaire ! Mais tu RESTES ! Tu m'entends ?! TU RESTES AVEC NOUS !"
+								}
+							}
+						]
+					}
+				]
+			},
+			{
+				"category": "Sorts Focalisés",
+				"spells": [
+					{
+						"id": "counter_performance",
+						"name": "Contre-représentation",
+						"name_en": "Counter Performance",
+						"rank": null,
+						"type": "Sort focalisé",
+						"mechanic": "Jet de Performance contre DC du sort ennemi",
+						"outcomes": [
+							{
+								"result": "Échec Critique (Je ne parviens pas à contrer)",
+								"scenic_attitude": "Je lève immédiatement mon instrument ou ma voix pour intercepter le sort ennemi, mais ma contre-mélodie est discordante, fausse, PATHÉTIQUE. Le sort adverse passe sans encombre et je reste planté là, bouche ouverte, incrédule. Mes doigts se figent sur mon luth, mes cordes vocales se nouent. Mon visage exprime un mélange de honte et de panique. Je regarde mes mains comme si elles m'avaient trahi. L'air reste chargé de la magie ennemie, non contestée. Me voyant faire, tous comprennent que j'ai échoué dans mon rôle de protecteur magique - et que ça me détruit.",
+								"dialogues": {
+									"Syndicale": "DÉFAILLANCE TECHNIQUE MAJEURE ! Ce n'est PAS de ma faute ! Les conditions acoustiques sont DÉPLORABLES ! Je dépose une réclamation pour environnement de travail inadapté ! C'est... c'est sabotage !",
+									"Mythologique": "Grundinnar, pourquoi m'abandonnes-tu ?! Ma voix, mon DON, mon seul talent véritable et il me LÂCHE ?! C'est une punition divine ?! QU'AI-JE FAIT pour mériter ça ?!",
+									"Grivoise": "PUTAIN DE MERDE ! J'ai raté ?! MOI ?! Le meilleur barde de Brechemont et j'ai raté un contre-sort BASIQUE ?! Je... Courez ! COUREZ ! Je ne peux rien faire ! Je suis INUTILE !",
+									"Jaworski": "Ma mélodie se brise contre la sienne. Mon art capitule devant le sien. C'est... humiliant. Profondément, viscéralement humiliant. Pardonnez-moi. Je vous ai laissés tomber.",
+									"Post-Perfidia": "Je n'ai pas pu la protéger. Et maintenant je ne peux pas VOUS protéger non plus ! Mes mains, ma voix, TOUT me trahit ! Je suis un échec ! Un putain d'## Échec vivant !"
+								}
+							},
+							{
+								"result": "Échec (Contre partiel)",
+								"scenic_attitude": "Ma contre-mélodie s'élève pour intercepter le sort, elle y parvient PRESQUE, atténuant l'effet mais sans le neutraliser complètement. Mon visage se crispe de frustration. J'insiste, je force, mais ça ne suffit pas. Mes doigts grattent frénétiquement les cordes, ma voix monte d'un cran, désespérée. Mon front perle de sueur. Mon regard alterne entre ma cible et mes alliés qui subissent quand même l'attaque. L'air vibre de la confrontation magique, mais la magie ennemie garde l'avantage. Me voyant faire, tous comprennent que j'ai fait de mon mieux - et que mon mieux n'était pas assez.",
+								"dialogues": {
+									"Syndicale": "Atténuation partielle obtenue ! Ce n'est PAS le résultat optimal mais c'est mieux que rien ! Je... j'aurais dû faire mieux. Les conditions ne sont PAS une excuse. J'aurais dû... Merde.",
+									"Mythologique": "Grundinnar me prête sa force mais elle ne suffit pas ! Le sort ennemi est trop puissant ou moi trop faible ! Pardonnez mon insuffisance, mes frères ! J'ai essayé ! Par les dieux, j'ai ESSAYÉ !",
+									"Grivoise": "J'ai amorti le coup mais pas bloqué ! C'est... c'est déjà ça, non ? NON ?! Putain, je suis censé vous PROTÉGER ! Pas juste... atténuer les dégâts ! Je suis désolé ! Je vais faire mieux !",
+									"Jaworski": "Ma mélodie vacille face à la leur. J'ai empêché le pire mais pas évité le mal. C'est une demi-victoire, c'est-à-dire une demi-défaite. J'accepte ce blâme. Il est mérité.",
+									"Post-Perfidia": "Pas assez rapide. Pas assez fort. Comme avec elle. TOUJOURS pas assez. Vous méritez mieux que moi. Vous méritez quelqu'un qui RÉUSSIT. Pas un raté qui fait semblant."
+								}
+							},
+							{
+								"result": "Succès (Je contre le sort)",
+								"scenic_attitude": "Ma contre-mélodie jaillit avec précision chirurgicale, interceptant le sort ennemi et le DISSOLVANT en notes discordantes. Mon visage reste concentré, mes doigts dansent avec assurance sur les cordes ou ma voix module avec expertise. Un hochement de tête satisfait quand le sort adverse s'évapore. Mon regard balaye rapidement mes alliés pour vérifier qu'ils sont sains et saufs. Ma posture reste vigilante - un danger contré, mais d'autres peuvent venir. L'air vibre puis se calme, la magie ennemie neutralisée. Me voyant faire, tous comprennent que c'est pour ça que je suis là - pour vous protéger avec l'arme que je maîtrise le mieux : mon art.",
+								"dialogues": {
+									"Syndicale": "Neutralisation réussie conformément au protocole de contre-offensive magique ! Le sort adverse a été ANNULÉ ! Personne n'attaque mes camarades sans passer par MOI d'abord ! Clause de protection syndical activée et efficace !",
+									"Mythologique": "Par Grundinnar ! Ma voix brise leur sortilège comme le marteau brise l'enclume fissurée ! Leur magie n'est RIEN face à l'art des anciens ! Vous êtes protégés, mes frères ! Tant que je respire, leur poison ne vous touchera pas !",
+									"Grivoise": "HA ! Bien essayé, connard ! Mais TU ne passes PAS ! Ma musique bouffe ta magie comme je bouffe du pain ! Essaie encore, pour voir ! Je peux faire ça toute la journée ! Mes alliés sont INTOUCHABLES !",
+									"Jaworski": "Ma mélodie dévore la leur. Mon art efface leur malice. C'est l'harmonie qui triomphe du chaos. Vous êtes saufs. C'est tout ce qui compte. Le reste n'est que technique et talent - que j'ai en abondance.",
+									"Post-Perfidia": "Je ne l'ai pas protégée. Mais VOUS, je vous protège ! Ce sort ne vous touchera pas ! AUCUN sort ne vous touchera ! Je le jure sur sa mémoire ! Vous êtes à l'abri tant que je suis debout !"
+								}
+							},
+							{
+								"result": "Succès Critique (Je contre brillamment)",
+								"scenic_attitude": "Ma contre-mélodie n'intercepte pas le sort - elle le PULVÉRISE. Mes doigts volent sur les cordes avec une virtuosité surnaturelle, ou ma voix atteint des notes que même moi je ne savais pas pouvoir produire. Mes yeux brillent de triomphe pur. Je me redresse de toute ma hauteur (toute petite qu'elle soit), bombant le torse, un sourire féroce aux lèvres. C'est le moment où le barde devient LÉGENDE. Où l'art devient arme absolue. L'air EXPLOSE en harmoniques conflictuelles, puis le silence - total, parfait. La magie ennemie n'existe plus. Me voyant faire, tous comprennent qu'ils viennent d'assister à un moment de maîtrise absolue.",
+								"dialogues": {
+									"Syndicale": "ANNULATION TOTALE ET DÉFINITIVE ! Non seulement j'ai bloqué le sort, mais j'ai HUMILIÉ le lanceur ! Votre magie est OBSOLÈTE face à mon expertise ! Retournez à l'école de magie et revenez quand vous aurez le NIVEAU !",
+									"Mythologique": "GRUNDINNAR CHANTE À TRAVERS MOI ! Les ancêtres guident mes doigts ! REGARDEZ TOUS ! VOICI CE QU'UN VRAI MAÎTRE PEUT FAIRE ! Leur sort est ANÉANTI ! Leur orgueil BRISÉ ! Et mes alliés INVIOLÉS !",
+									"Grivoise": "PUTAIN OUAIS ! VOUS AVEZ VU ÇA ?! J'ai EXPLOSÉ leur sort comme une merde sur un mur ! C'est BEAU, c'est PARFAIT, c'est de l'ART pur ! Essayez encore, connards ! Je peux faire ça en DORMANT !",
+									"Jaworski": "MA MÉLODIE EST ABSOLUE ! Elle ne conteste pas leur magie, elle la NIE ! Elle l'efface de la réalité elle-même ! Vous venez de voir la différence entre un artisan et un VIRTUOSE ! Inclinez-vous devant la perfection !",
+									"Post-Perfidia": "POUR ELLE ! Ce contre était pour elle ! Pour montrer que son sacrifice n'était pas vain ! Que j'ai APPRIS ! Que je suis devenu MEILLEUR ! Regardez-moi, petite peste ! De là-haut, regarde ce que je fais en ton nom !"
+								}
+							}
+						]
+					},
+					{
+						"id": "hymn_of_healing",
+						"name": "Hymne de Guérison",
+						"name_en": "Hymn Of Healing",
+						"rank": null,
+						"type": "Sort focalisé",
+						"mechanic": "Fonctionne systématiquement",
+						"outcomes": [
+							{
+								"result": "Succès (Automatique)",
+								"scenic_attitude": "Mes mains se projettent vers vous, mes alliés blessés, dans un geste d'urgence contenue. Pas de panique dans mes mouvements, mais une détermination farouche. Mon visage exprime une concentration absolue mêlée à une tendresse rare. Ma voix s'élève, claire et forte malgré la fatigue, portant des notes de réconfort et de régénération. C'est un hymne, pas une prière - c'est une EXIGENCE faite au monde : \"Guérissez. Je le veux. Je le COMMANDE.\" Une lumière dorée pulse de mon corps, s'écoulant vers vous tous comme des vagues successives de chaleur bienfaisante. Me voyant faire, tous comprennent que tant que je respire, je ne laisserai personne tomber.",
+								"dialogues": {
+									"Syndicale": "Activation du protocole de soins collectifs ! Article 23 : en cas d'urgence médicale multiple, priorité à la survie du groupe ! Vous avez tous droit à la guérison ! C'est dans le CONTRAT ! Alors accrochez-vous et GUÉRISSEZ !",
+									"Mythologique": "Par la grâce de Grundinnar qui soigne les cœurs brisés ! Par la force de Torag qui répare ce qui est cassé ! Que mes alliés retrouvent leur souffle ! Que leurs plaies se ferment ! Les dieux honorent les loyaux ! LEVEZ-VOUS !",
+									"Grivoise": "Allez les gars ! On tient le coup ! J'envoie la sauce magique ! Ça va piquer un peu, ça va chauffer, mais après vous serez comme NEUFS ! Enfin, presque ! L'important c'est qu'on reste DEBOUT et VIVANTS !",
+									"Jaworski": "Ma voix est le fil qui vous raccroche à la vie. Mon chant est le baume qui apaise vos douleurs. Laissez mes notes pénétrer vos chairs meurtries. Laissez mon art vous reconstruire. Un mot à la fois. Un souffle à la fois.",
+									"Post-Perfidia": "Je ne vous perdrai pas ! AUCUN de vous ! Prenez ma force ! Prenez ma magie ! Prenez TOUT ce que j'ai à donner ! Elle n'est plus là pour recevoir mes soins, alors VOUS allez les recevoir ! TOUS ! Restez avec moi !"
+								}
+							}
+						]
+					}
+				]
+			}
+		]		
+		
+	};
+
+let currentSpell, currentOutcome, currentDiag;
+	let counts = JSON.parse(localStorage.getItem('dungrow_counts') || '{}');
+	let logs = JSON.parse(localStorage.getItem('dungrow_logs') || '{}');
+
+	function openModal(msg, confirmCallback, isDanger = false) {
+		const overlay = document.getElementById('modal-overlay');
+		const msgDiv = document.getElementById('modal-msg');
+		const confirmBtn = document.getElementById('modal-confirm-btn');
+		msgDiv.innerText = msg;
+		confirmBtn.className = isDanger ? 'm-btn m-danger' : 'm-btn m-confirm';
+		overlay.style.display = 'flex';
+		confirmBtn.onclick = () => { confirmCallback(); closeModal(); };
+	}
+
+	function closeModal() { document.getElementById('modal-overlay').style.display = 'none'; }
+
+	function showScreen(n) {
+		document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+		document.getElementById('screen-'+n).classList.add('active');
+		window.scrollTo(0,0);
+	}
+
+	function clearSearch() { document.getElementById('search-input').value = ''; filterSpells(); }
+
+	function filterSpells() {
+		const q = document.getElementById('search-input').value.toLowerCase();
+		document.getElementById('clear-btn').style.visibility = q.length > 0 ? 'visible' : 'hidden';
+		document.querySelectorAll('.spell-btn').forEach(b => b.classList.toggle('hidden', !b.dataset.name.includes(q)));
+		document.querySelectorAll('.spell-group').forEach(g => {
+			const hasVisible = g.querySelectorAll('.spell-btn:not(.hidden)').length > 0;
+			g.classList.toggle('hidden', !hasVisible);
+		});
+	}
+
+	function renderScreen1() {
+		const list = document.getElementById('spell-list');
+		list.innerHTML = '';
+		fullData.grimoire.forEach(cat => {
+			const group = document.createElement('div');
+			group.className = 'spell-group';
+			group.innerHTML = `<div class="category-title">${cat.category}</div>`;
+			cat.spells.forEach(s => {
+				const b = document.createElement('button');
+				b.className = 'btn spell-btn';
+				b.dataset.name = s.name.toLowerCase();
+				b.innerText = s.name;
+				b.onclick = () => { currentSpell = s; s.outcomes.length > 1 ? renderScreen2() : selectOutcome(s.outcomes[0]); };
+				group.appendChild(b);
+			});
+			list.appendChild(group);
+		});
+	}
+
+	function getEmoji(txt) {
+		const t = txt.toLowerCase();
+		if(t.includes("échec critique")) return "☠️";
+		if(t.includes("échec")) return "😰";
+		if(t.includes("succès critique")) return "😎";
+		if(t.includes("succès")) return "🥳";
+		return "✨";
+	}
+
+	function renderScreen2() {
+		document.getElementById('s2-name').innerText = currentSpell.name;
+		document.getElementById('s2-meta').innerText = `${currentSpell.type} | ${currentSpell.mechanic}`;
+		const list = document.getElementById('outcome-list');
+		list.innerHTML = '';
+		currentSpell.outcomes.forEach(o => {
+			const b = document.createElement('button');
+			b.className = 'btn';
+			b.innerText = `${getEmoji(o.result)} ${o.result}`;
+			b.onclick = () => selectOutcome(o);
+			list.appendChild(b);
+		});
+		showScreen(2);
+	}
+
+	function selectOutcome(o) { currentOutcome = o; renderScreen3(); }
+
+	const emojiMap = {
+		"Syndicale": "📜",
+		"Mythologique": "🔨",
+		"Grivoise": "🍆",
+		"Jaworski": "🗡️",
+		"Post-Perfidia": "⚰️"
+	};
+
+	function renderScreen3() {
+		document.getElementById('s3-name').innerText = currentSpell.name;
+		document.getElementById('s3-meta').innerHTML = `<span class="outcome-tag">${getEmoji(currentOutcome.result)} ${currentOutcome.result}</span>${currentSpell.type} | ${currentSpell.mechanic}`;
+		document.getElementById('back-to-s2').onclick = () => currentSpell.outcomes.length > 1 ? showScreen(2) : showScreen(1);
+		const list = document.getElementById('dialogue-types');
+		list.innerHTML = '';
+Object.keys(currentOutcome.dialogues).forEach(k => {
+		const ck = `${currentSpell.id}_${k}`;
+		const b = document.createElement('button');
+		b.className = 'btn';
+		// Utilisation de la map pour ajouter l'emoji devant le texte
+		const emoji = emojiMap[k] || "💬"; 
+		b.innerHTML = `<span class="counter">[${counts[ck] || 0}]</span> ${emoji} ${k}`;
+		b.onclick = () => { currentDiag = k; renderScreen4(); };
+		list.appendChild(b);
+	});
+	showScreen(3);
+	}
+
+	function renderScreen4() {
+		const ck = `${currentSpell.id}_${currentDiag}`;
+		const emoji = emojiMap[currentDiag] || "💬";
+		document.getElementById('s4-name').innerText = currentSpell.name;
+		document.getElementById('s4-scenic').innerText = currentOutcome.scenic_attitude;
+		document.getElementById('s4-meta').innerHTML = `<span class="outcome-tag">${emoji} ${currentDiag} [${counts[ck]||0}]</span>${getEmoji(currentOutcome.result)} ${currentOutcome.result}`;
+		document.getElementById('s4-text').innerText = currentOutcome.dialogues[currentDiag];
+		
+		const logBox = document.getElementById('s4-logs');
+		logBox.innerHTML = '';
+		const history = logs[ck] || [];
+		if(history.length === 0) { logBox.innerHTML = '<span>Aucun usage.</span>'; } 
+		else {
+			[...history].reverse().forEach((d, idx) => {
+				const realIndex = history.length - 1 - idx;
+				const row = document.createElement('div');
+				row.className = 'log-entry';
+				row.innerHTML = `<span>le ${d}</span><button class="btn-delete-log" onclick="confirmDeleteLog('${ck}', ${realIndex})">EFFACER</button>`;
+				logBox.appendChild(row);
+			});
+		}
+		showScreen(4);
+	}
+	
+	function confirmValidation() { openModal("Avez-vous bien fini de lire le texte ?", validateAction); }
+
+	function validateAction() {
+		const ck = `${currentSpell.id}_${currentDiag}`;
+		counts[ck] = (counts[ck] || 0) + 1;
+		localStorage.setItem('dungrow_counts', JSON.stringify(counts));
+		const now = new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+		if(!logs[ck]) logs[ck] = [];
+		logs[ck].push(now);
+		localStorage.setItem('dungrow_logs', JSON.stringify(logs));
+		renderScreen3();
+	}
+
+	function confirmDeleteLog(ck, index) {
+		openModal("Cette action est irréversible, souhaitez-vous continuer ?", () => {
+			logs[ck].splice(index, 1);
+			localStorage.setItem('dungrow_logs', JSON.stringify(logs));
+			if (counts[ck] > 0) counts[ck]--;
+			localStorage.setItem('dungrow_counts', JSON.stringify(counts));
+			renderScreen4();
+		}, true);
+	}
+
+	// NOUVELLE FONCTION RESET GLOBAL
+	function confirmGlobalReset() {
+		openModal("Attention : Cette action est irréversible. Souhaitez-vous réinitialiser TOUS les compteurs et l'historique ?", resetAllData, true);
+	}
+
+	function resetAllData() {
+		counts = {};
+		logs = {};
+		localStorage.removeItem('dungrow_counts');
+		localStorage.removeItem('dungrow_logs');
+		renderScreen1();
+		alert("Le grimoire a été remis à zéro.");
+	}
+
+	renderScreen1();
+</script>
+</body>
+</html>
